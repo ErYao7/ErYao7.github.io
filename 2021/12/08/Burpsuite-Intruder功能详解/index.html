@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"eryao7.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="Target">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Burpsuite-Intruder功能详解">
+<meta property="og:url" content="http://eryao7.github.io/2021/12/08/Burpsuite-Intruder%E5%8A%9F%E8%83%BD%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="ErYao7">
+<meta property="og:description" content="Target">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/ba71a7c2abad4dfcbcff4cbe930f8207.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBARXJZYW83,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042282.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042314.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042252.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042158.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042125.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042879.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042024.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042451.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042827.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042043.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/4c752078fd534235a5080d3d1d2f576d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBARXJZYW83,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="article:published_time" content="2021-12-08T02:41:37.000Z">
+<meta property="article:modified_time" content="2021-12-08T02:59:20.958Z">
+<meta property="article:author" content="ErYao7">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/ba71a7c2abad4dfcbcff4cbe930f8207.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBARXJZYW83,size_20,color_FFFFFF,t_70,g_se,x_16">
+
+
+<link rel="canonical" href="http://eryao7.github.io/2021/12/08/Burpsuite-Intruder%E5%8A%9F%E8%83%BD%E8%AF%A6%E8%A7%A3/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://eryao7.github.io/2021/12/08/Burpsuite-Intruder%E5%8A%9F%E8%83%BD%E8%AF%A6%E8%A7%A3/","path":"2021/12/08/Burpsuite-Intruder功能详解/","title":"Burpsuite-Intruder功能详解"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Burpsuite-Intruder功能详解 | ErYao7</title>
+  
+
+  <script src="/js/third-party/analytics/baidu-analytics.js"></script>
+  <script async src="https://hm.baidu.com/hm.js?c92ad4f568c8e98b7c047d3479b8585b"></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="ErYao7" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">ErYao7</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Target"><span class="nav-text">Target</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Positions"><span class="nav-text">Positions</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%BB%E5%87%BB%E7%B1%BB%E5%9E%8B"><span class="nav-text">攻击类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E7%A7%8D-Sniper%EF%BC%9A"><span class="nav-text">第一种 Sniper：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E7%A7%8D-Battering-ram%EF%BC%9A"><span class="nav-text">第二种 Battering ram：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%B8%89%E7%A7%8D-Pitchfork%EF%BC%9A"><span class="nav-text">第三种 Pitchfork：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E5%9B%9B%E7%A7%8D-Cluster-bomb-%EF%BC%9A"><span class="nav-text">第四种 Cluster bomb ：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-text">例子</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80-Sniper%EF%BC%88%E7%8B%99%E5%87%BB%E6%89%8B%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="nav-text">一 Sniper（狙击手模式）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8CBattering-ram%EF%BC%88%E6%94%BB%E5%9F%8E%E9%94%A4%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="nav-text">二Battering ram（攻城锤模式）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89Pitchfork%EF%BC%88%E8%8D%89%E5%8F%89%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="nav-text">三Pitchfork（草叉模式）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9BCluster-bomb%EF%BC%88%E9%9B%86%E6%9D%9F%E7%82%B8%E5%BC%B9%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="nav-text">四Cluster bomb（集束炸弹模式）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Payloads"><span class="nav-text">Payloads</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Opetions"><span class="nav-text">Opetions</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ErYao7"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">ErYao7</p>
+  <div class="site-description" itemprop="description">欢迎来到ErYao7的博客~</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://eryao7.github.io/2021/12/08/Burpsuite-Intruder%E5%8A%9F%E8%83%BD%E8%AF%A6%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ErYao7">
+      <meta itemprop="description" content="欢迎来到ErYao7的博客~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ErYao7">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Burpsuite-Intruder功能详解
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-12-08 10:41:37 / 修改时间：10:59:20" itemprop="dateCreated datePublished" datetime="2021-12-08T10:41:37+08:00">2021-12-08</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="Target"><a href="#Target" class="headerlink" title="Target"></a>Target</h1><p><img src="https://img-blog.csdnimg.cn/ba71a7c2abad4dfcbcff4cbe930f8207.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBARXJZYW83,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<span id="more"></span>
+
+<h1 id="Positions"><a href="#Positions" class="headerlink" title="Positions"></a>Positions</h1><p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042282.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h2 id="攻击类型"><a href="#攻击类型" class="headerlink" title="攻击类型"></a>攻击类型</h2><h3 id="第一种-Sniper："><a href="#第一种-Sniper：" class="headerlink" title="第一种 Sniper："></a>第一种 Sniper：</h3><p>Sniper - 这个模式是我们最常用的，Sniper是狙击手的意思。这个模式会使用单一的payload【就是导入字典的payload】组。它会针对每个position中$$位置设置payload。这种攻击类型适合对常见漏洞中的请求参数单独地进行测试。攻击中的请求总数应该是position数量和payload数量的乘积。</p>
+<h3 id="第二种-Battering-ram："><a href="#第二种-Battering-ram：" class="headerlink" title="第二种 Battering ram："></a>第二种 Battering ram：</h3><p>Battering ram – 这一模式是使用单一的payload组。它会重复payload并且一次把所有相同的payload放入指定的位置中。这种攻击适合那种需要在请求中把相同的输入放到多个位置的情况。请求的总数是payload组中payload的总数。简单说就是一个playload字典同时应用到多个position中</p>
+<h3 id="第三种-Pitchfork："><a href="#第三种-Pitchfork：" class="headerlink" title="第三种 Pitchfork："></a>第三种 Pitchfork：</h3><p>Pitchfork – 这一模式是使用多个payload组。对于定义的位置可以使用不同的payload组。攻击会同步迭代所有的payload组，把payload放入每个定义的位置中。比如：position中A处有a字典，B处有b字典，则a【1】将会对应b【1】进行attack处理，这种攻击类型非常适合那种不同位置中需要插入不同但相关的输入的情况。请求的数量应该是最小的payload组中的payload数量</p>
+<h3 id="第四种-Cluster-bomb-："><a href="#第四种-Cluster-bomb-：" class="headerlink" title="第四种 Cluster bomb ："></a>第四种 Cluster bomb ：</h3><p>Cluster bomb – 这种模式会使用多个payload组。每个定义的位置中有不同的payload组。攻击会迭代每个payload组，每种payload组合都会被测试一遍。比如：position中A处有a字典，B处有b字典，则两个字典将会循环搭配组合进行attack处理这种攻击适用于那种位置中需要不同且不相关或者未知的输入的攻击。攻击请求的总数是各payload组中payload数量的乘积。</p>
+<h2 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h2><h3 id="一-Sniper（狙击手模式）"><a href="#一-Sniper（狙击手模式）" class="headerlink" title="一 Sniper（狙击手模式）"></a><strong>一 Sniper（狙击手模式）</strong></h3><p>狙击手模式使用一组payload集合，它一次只使用一个payload位置，假设你标记了两个位置“A”和“B”，payload值为“1”和“2”，那么它攻击会形成以下组合（除原始数据外）：</p>
+<table>
+<thead>
+<tr>
+<th>attack NO.</th>
+<th>location A</th>
+<th>location B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1</td>
+<td>no replace</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2</td>
+<td>no replace</td>
+</tr>
+<tr>
+<td>3</td>
+<td>no replace</td>
+<td>1</td>
+</tr>
+<tr>
+<td>4</td>
+<td>no replace</td>
+<td>2</td>
+</tr>
+</tbody></table>
+<h3 id="二Battering-ram（攻城锤模式）"><a href="#二Battering-ram（攻城锤模式）" class="headerlink" title="二Battering ram（攻城锤模式）"></a><strong>二Battering ram（攻城锤模式）</strong></h3><p>攻城锤模式与狙击手模式类似的地方是，同样只使用一个payload集合，不同的地方在于每次攻击都是替换所有payload标记位置，而狙击手模式每次只能替换一个payload标记位置。</p>
+<table>
+<thead>
+<tr>
+<th>attack NO.</th>
+<th>location A</th>
+<th>location B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+</tr>
+</tbody></table>
+<h3 id="三Pitchfork（草叉模式）"><a href="#三Pitchfork（草叉模式）" class="headerlink" title="三Pitchfork（草叉模式）"></a><strong>三Pitchfork（草叉模式）</strong></h3><p>草叉模式允许使用多组payload组合，在每个标记位置上遍历所有payload组合，假设有两个位置“A”和“B”，payload组合1的值为“1”和“2”，payload组合2的值为“3”和“4”，则攻击模式如下：</p>
+<table>
+<thead>
+<tr>
+<th>attack NO.</th>
+<th>location A</th>
+<th>location B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1</td>
+<td>3</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2</td>
+<td>4</td>
+</tr>
+</tbody></table>
+<h3 id="四Cluster-bomb（集束炸弹模式）"><a href="#四Cluster-bomb（集束炸弹模式）" class="headerlink" title="四Cluster bomb（集束炸弹模式）"></a><strong>四Cluster bomb（集束炸弹模式）</strong></h3><p>集束炸弹模式跟草叉模式不同的地方在于，集束炸弹模式会对payload组进行笛卡尔积，还是上面的例子，如果用集束炸弹模式进行攻击，则除baseline请求外，会有四次请求：</p>
+<table>
+<thead>
+<tr>
+<th>attack NO.</th>
+<th>location A</th>
+<th>location B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1</td>
+<td>3</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>4</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2</td>
+<td>3</td>
+</tr>
+<tr>
+<td>4</td>
+<td>2</td>
+<td>4</td>
+</tr>
+</tbody></table>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>sniper 对变量依次进行破解。多个标记依次进行。</p>
+<p>Battering ram 对变量同时进行破解。多个标记同时进行。</p>
+<p>Pitchfork 每一个变量对应一个字典，取每一个字典的对应项</p>
+<p>Cluster bomb 每个变量对应一个字典，并且进行交集破解，尝试各种组合，适用于用户名+密码的破解</p>
+<h1 id="Payloads"><a href="#Payloads" class="headerlink" title="Payloads"></a>Payloads</h1><p>这个选项是用来配置一个或多个有效负荷的集合。如果定义了”cluster bomb”和”pitchfork”攻击类型，然后必须为每定义的有效负荷位置(最多8个)配置一个单独的有效负荷。使用”payload set”下拉菜单选择要配置的有效负荷。</p>
+<p><strong>选项1：Payload Sets</strong> Payload数量类型设置</p>
+<p><strong>选项2：Payload Opetions[Simple list]</strong> 该选项会根据选项1中Payload type的设置而改变</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042314.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p><strong>选项3：Payload Processing</strong> 对生成的Payload进行编码、加密、截取等操作</p>
+<p><strong>您可以定义规则，在每个有效负载使用之前对其执行各种处理任务，对生成的Payload进行编码、加密、截取等操作</strong></p>
+<p>add:添加一条规则，会弹出添加操作窗口，可添加的规则如下:</p>
+<p>Add prefix -添加一个文字前缀、</p>
+<p>Add suffix-添加一个文字后缀</p>
+<p>Match/replace-将替换匹配特定正则表达式的有效载荷的任何部位，用一个文字字符串表示。</p>
+<p>Substring -提取的有效载荷的子部分中，从指定的偏移量（0-索引）和至所指定的长度开始。</p>
+<p>Reverse substring-对于子规则来说，最终的偏移量指定的有效载荷的末尾向后计数，并且长度从端部向后偏移计数。</p>
+<p>Modify case·这个修改了的有效载荷的情况下，如果适用的话。同样的选项作为的情况下修改有效载荷类型</p>
+<p>Encode - URL，HTML，Base64的，ASCII码或十六进制字符串构建各种平台:采用不同的计划，该编码的有效载荷。</p>
+<p>Hash</p>
+<p>Add raw payload-这之前或之后，在当前处理的值增加了原始负载值。它可以是有用的，例如，如果你需要提交相同的有效载荷在raw和哈希表。</p>
+<p>Skip raw payload-将检查是否当前处理的值匹配指定的正则表达式，如果是这样，跳过有效载荷和移动到下一个。这可能是有用的，例如，如果知道一个参数值必须有一个最小长度和要跳过的一个列表，比这更短的长度的任何值。</p>
+<p>Invoke Burp extension·调用一个Burp extension(扩展)来处理负载。扩展名必须已注册入侵者有效载荷处理器。您可以 从已己注册的当前加载的扩展可用的处理器列表中选择所需的处理器。</p>
+<p>Edit:编辑一条规则。</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042252.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> <strong>选项4：Payload Encoding</strong> 可以配置哪些有效载荷中的字符应该是URL编码的HTTP请求中的安全传输。任何已配置的URL编码最后应用，任何有效载荷处理规则执行之后。 这是推荐使用此设置进行最终URL编码，而不是一个有效载荷处理规则，因为可以用来有效载荷的grep选项来检查响应为呼应有效载荷的最终URL编码应用之前。 <img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042158.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h1 id="Opetions"><a href="#Opetions" class="headerlink" title="Opetions"></a>Opetions</h1><p>此选项卡包含了request headers，request engine，attack results ，grep match，grep_extrack，grep payloads和redirections。你可以发动攻击之前，在主要Intruder的UI上编辑这些选项，大部分设置也可以在攻击时对已在运行的窗口进行修改。</p>
+<p><strong>选项1：Request Headers 这些设置控制在Intruder是否更新配置请求头。</strong></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042125.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动">如果选中‘update Content-Length header’框，Burp Intruder 会使用每个请求的 HTTP 主体长度的正确值，添加或更新这个请求里 HTTP 消息头的内容长度。这个功能对一些需要把可变长度的有效载荷插入到 HTTP 请求模板主体的攻击是很有必要的。这个 HTTP 规范和大多数 web 服务器一样，需要使用消息头内容长度来指定 HTTP 主体长度的正确值。如果没有指定正确值，目标服务器会返回一个错误，也可能返回一个未完成的请求，也可能无限期地等待接收请求里的进一步数据。</p>
+<p>如果选中‘set Connection: close’框，则 Burp Intruder 会添加或更新 HTTP 消息头的连接来请求在每个请求后已关闭的连接。在多数情况下，这个选项会让攻击执行得更快。</p>
+<p><strong>选项2：Request Engine 设置发送请求的线程、超时重试等。</strong></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042879.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p><strong>选项3：Attack Results 设置攻击结果的显示。</strong>  </p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042024.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> <strong>选项4：Grep – Match 在响应中找出存在指定的内容的一项。</strong> <img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042451.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> <strong>选项5：Grep – Extract 通过正则提取返回信息中的内容。</strong></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042827.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> <strong>选项6：Grep – Payloads  这些设置可以用于包含已提交的有效负载的反射的标志结果项目。如果启用了此选项，BurpSuite会添加包含一个复选框指示当前负载的值在每个响应发现新的结果列。</strong></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081042043.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> <strong>选项7：Redirections 重定向响应，控制Burp在进行攻击时如何处理重定向。</strong></p>
+<p><img src="https://img-blog.csdnimg.cn/4c752078fd534235a5080d3d1d2f576d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBARXJZYW83,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+        <a target="_blank" class="social-link" href="/atom.xml">
+          <span class="icon">
+            <i class="fa fa-rss"></i>
+          </span>
+
+          <span class="label">RSS</span>
+        </a>
+      </div>
+  </div>
+</div>
+
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/12/08/vulhub%E6%BC%8F%E6%B4%9E%E2%80%94ActiveMQ/" rel="prev" title="vulhub漏洞—ActiveMQ">
+                  <i class="fa fa-chevron-left"></i> vulhub漏洞—ActiveMQ
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/12/08/DVWA%E9%80%9A%E5%85%B3%E8%AF%A6%E8%A7%A3/" rel="next" title="DVWA通关详解">
+                  DVWA通关详解 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ErYao7</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

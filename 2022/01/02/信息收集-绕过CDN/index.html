@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"eryao7.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="1.如何判断目标存在CDN服务？​    利用多节点技术进行请求返回判断 2.目前常见的CDN绕过技术有哪些？​    子域名查询 ​    邮件服务查询 ​    国外地址请求 ​    遗留文件，扫描全网 ​    黑暗引擎搜索特定文件 -&gt; shodan,zoomeye,fofa ​    dns历史记录，以量打量 3.CDN真是IP地址获取后绑定指向地址​    更改本地HOSTS解">
+<meta property="og:type" content="article">
+<meta property="og:title" content="信息收集-绕过CDN">
+<meta property="og:url" content="http://eryao7.github.io/2022/01/02/%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86-%E7%BB%95%E8%BF%87CDN/index.html">
+<meta property="og:site_name" content="ErYao7">
+<meta property="og:description" content="1.如何判断目标存在CDN服务？​    利用多节点技术进行请求返回判断 2.目前常见的CDN绕过技术有哪些？​    子域名查询 ​    邮件服务查询 ​    国外地址请求 ​    遗留文件，扫描全网 ​    黑暗引擎搜索特定文件 -&gt; shodan,zoomeye,fofa ​    dns历史记录，以量打量 3.CDN真是IP地址获取后绑定指向地址​    更改本地HOSTS解">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021557805.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021559566.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021609258.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021617617.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021624053.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021642301.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021657294.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021643109.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021702659.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021702452.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021740535.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021747466.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021748283.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021752213.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021753629.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201022312636.png">
+<meta property="article:published_time" content="2022-01-02T07:55:16.000Z">
+<meta property="article:modified_time" content="2022-01-02T15:15:13.752Z">
+<meta property="article:author" content="ErYao7">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201021557805.png">
+
+
+<link rel="canonical" href="http://eryao7.github.io/2022/01/02/%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86-%E7%BB%95%E8%BF%87CDN/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://eryao7.github.io/2022/01/02/%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86-%E7%BB%95%E8%BF%87CDN/","path":"2022/01/02/信息收集-绕过CDN/","title":"信息收集-绕过CDN"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>信息收集-绕过CDN | ErYao7</title>
+  
+
+  <script src="/js/third-party/analytics/baidu-analytics.js"></script>
+  <script async src="https://hm.baidu.com/hm.js?c92ad4f568c8e98b7c047d3479b8585b"></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="ErYao7" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">ErYao7</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E7%9B%AE%E6%A0%87%E5%AD%98%E5%9C%A8CDN%E6%9C%8D%E5%8A%A1%EF%BC%9F"><span class="nav-text">1.如何判断目标存在CDN服务？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E7%9B%AE%E5%89%8D%E5%B8%B8%E8%A7%81%E7%9A%84CDN%E7%BB%95%E8%BF%87%E6%8A%80%E6%9C%AF%E6%9C%89%E5%93%AA%E4%BA%9B%EF%BC%9F"><span class="nav-text">2.目前常见的CDN绕过技术有哪些？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-CDN%E7%9C%9F%E6%98%AFIP%E5%9C%B0%E5%9D%80%E8%8E%B7%E5%8F%96%E5%90%8E%E7%BB%91%E5%AE%9A%E6%8C%87%E5%90%91%E5%9C%B0%E5%9D%80"><span class="nav-text">3.CDN真是IP地址获取后绑定指向地址</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%AE%9E%E4%BE%8B"><span class="nav-text">4.实例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%90%E5%9F%9F%E5%90%8D%E5%B0%8F%E6%8A%80%E5%B7%A7"><span class="nav-text">子域名小技巧</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DNS%E5%8E%86%E5%8F%B2%E8%AE%B0%E5%BD%95-%E7%AC%AC%E4%B8%89%E6%96%B9%E6%8E%A5%E5%8F%A3%EF%BC%88%E6%8E%A5%E5%8F%A3%E6%9F%A5%E8%AF%A2%EF%BC%89"><span class="nav-text">DNS历史记录&#x3D;第三方接口（接口查询）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%90%E5%9F%9F%E5%90%8D%E5%B0%8F%E6%8A%80%E5%B7%A7-%E9%87%87%E9%9B%86-%E5%9B%BD%E5%A4%96%E8%AF%B7%E6%B1%82%EF%BC%88%E5%90%8C%E7%B1%BB%E5%9E%8B%E8%AE%BF%E9%97%AE%EF%BC%89"><span class="nav-text">子域名小技巧&#x2F;采集&#x2F;国外请求（同类型访问）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%82%AE%E7%AE%B1%E6%BA%90%E7%A0%81%E6%B5%8B%E8%AF%95%E5%AF%B9%E6%AF%94%E7%AC%AC%E4%B8%89%E6%96%B9%E6%9F%A5%E8%AF%A2%EF%BC%88%E5%9C%B0%E5%8C%BA%E5%88%86%E6%9E%90%EF%BC%89"><span class="nav-text">邮箱源码测试对比第三方查询（地区分析）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Shodan%E6%90%9C%E7%B4%A2%E6%8C%87%E5%AE%9Ahash%E6%96%87%E4%BB%B6"><span class="nav-text">Shodan搜索指定hash文件</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ErYao7"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">ErYao7</p>
+  <div class="site-description" itemprop="description">欢迎来到ErYao7的博客~</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://eryao7.github.io/2022/01/02/%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86-%E7%BB%95%E8%BF%87CDN/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ErYao7">
+      <meta itemprop="description" content="欢迎来到ErYao7的博客~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ErYao7">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          信息收集-绕过CDN
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2022-01-02 15:55:16 / 修改时间：23:15:13" itemprop="dateCreated datePublished" datetime="2022-01-02T15:55:16+08:00">2022-01-02</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="1-如何判断目标存在CDN服务？"><a href="#1-如何判断目标存在CDN服务？" class="headerlink" title="1.如何判断目标存在CDN服务？"></a>1.如何判断目标存在CDN服务？</h1><p>​    利用多节点技术进行请求返回判断</p>
+<h1 id="2-目前常见的CDN绕过技术有哪些？"><a href="#2-目前常见的CDN绕过技术有哪些？" class="headerlink" title="2.目前常见的CDN绕过技术有哪些？"></a>2.目前常见的CDN绕过技术有哪些？</h1><p>​    子域名查询</p>
+<p>​    邮件服务查询</p>
+<p>​    国外地址请求</p>
+<p>​    遗留文件，扫描全网</p>
+<p>​    黑暗引擎搜索特定文件 -&gt; shodan,zoomeye,fofa</p>
+<p>​    dns历史记录，以量打量</p>
+<h1 id="3-CDN真是IP地址获取后绑定指向地址"><a href="#3-CDN真是IP地址获取后绑定指向地址" class="headerlink" title="3.CDN真是IP地址获取后绑定指向地址"></a>3.CDN真是IP地址获取后绑定指向地址</h1><p>​    更改本地HOSTS解析指向文件</p>
+<h1 id="4-实例"><a href="#4-实例" class="headerlink" title="4.实例"></a>4.实例</h1><h2 id="子域名小技巧"><a href="#子域名小技巧" class="headerlink" title="子域名小技巧"></a>子域名小技巧</h2><p>与CDN解析相关，<a target="_blank" rel="noopener" href="http://www.xueersi.com/">www.xueersi.com</a> 设置了CDN服务，而 xueersi.com 没有设置CDN服务    </p>
+<p>超级ping： <a target="_blank" rel="noopener" href="https://ping.chinaz.com/">https://ping.chinaz.com/</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.xueersi.com/">www.xueersi.com</a></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201021557805.png" alt="image-20220102155745638"></p>
+<p>xueersi.com</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201021559566.png" alt="image-20220102155901460"></p>
+<h2 id="DNS历史记录-第三方接口（接口查询）"><a href="#DNS历史记录-第三方接口（接口查询）" class="headerlink" title="DNS历史记录=第三方接口（接口查询）"></a>DNS历史记录=第三方接口（接口查询）</h2><p>Get Site IP</p>
+<p><a target="_blank" rel="noopener" href="https://get-site-ip.com/">https://get-site-ip.com/</a></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201021609258.png" alt="image-20220102160941115"></p>
+<p>微步在线情报社区</p>
+<p><a target="_blank" rel="noopener" href="https://x.threatbook.cn/">https://x.threatbook.cn/</a></p>
+<p>通过历史解析记录可能找到网站未作CDN服务时解析的IP（仅供参考，不一定准确）</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201021617617.png" alt="image-20220102161759517"></p>
+<h2 id="子域名小技巧-采集-国外请求（同类型访问）"><a href="#子域名小技巧-采集-国外请求（同类型访问）" class="headerlink" title="子域名小技巧/采集/国外请求（同类型访问）"></a>子域名小技巧/采集/国外请求（同类型访问）</h2><p>手机站点与PC站点访问到的内容以及功能是一样的，但是访问的域名可能不同，例如百度 手机站点为m.baidu.com</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201021624053.png" alt="image-20220102162427978"></p>
+<p>先超级ping一下 <a target="_blank" rel="noopener" href="http://www.sp910.com/">www.sp910.com</a> 存在CDN服务</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201021642301.png" alt="image-20220102164217183"></p>
+<p>补充一个子域名采集</p>
+<p>子域名查询网站 <a target="_blank" rel="noopener" href="https://phpinfo.me/domain/">https://phpinfo.me/domain/</a></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201021657294.png" alt="image-20220102165757226"></p>
+<p>在ping m.sp910.com</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201021643109.png" alt="image-20220102164345010"></p>
+<p>海外ping</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201021702659.png" alt="image-20220102170215575"></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201021702452.png" alt="image-20220102170232380"></p>
+<h2 id="邮箱源码测试对比第三方查询（地区分析）"><a href="#邮箱源码测试对比第三方查询（地区分析）" class="headerlink" title="邮箱源码测试对比第三方查询（地区分析）"></a>邮箱源码测试对比第三方查询（地区分析）</h2><p>mozhe.cn</p>
+<p>多地ping ，发现存在CDN</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201021740535.png" alt="image-20220102174029413"></p>
+<p>我们注册一个账号并绑定邮箱，墨者服务器会为给我们发送邮件，我们查看邮件信头，我使用的163.邮箱（信头查看）</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201021747466.png" alt="image-20220102174714395"></p>
+<p>ip地址为重庆</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201021748283.png" alt="image-20220102174811223"></p>
+<p>我们在使用Get Site IP查询IP,我们两个IP不一致</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201021752213.png" alt="image-20220102175229101"></p>
+<p>查询该ip地址，为浙江</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201021753629.png" alt="image-20220102175314579"></p>
+<p>那个正确呢？我们可以查询该网站的备案信息，渝=重庆，说明我们通过邮件查到的IP是正确的。</p>
+<p>说明第三方工具不一定靠谱，还是需要我们去验证一下。</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201022312636.png" alt="image-20220102231224499"></p>
+<h2 id="Shodan搜索指定hash文件"><a href="#Shodan搜索指定hash文件" class="headerlink" title="Shodan搜索指定hash文件"></a>Shodan搜索指定hash文件</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> mmh3</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"></span><br><span class="line">response = requests.get(<span class="string">&#x27;https://www.xxx.com/favicon.ico&#x27;</span>)</span><br><span class="line">favicon = base64.b64encode(response.content)</span><br><span class="line"><span class="built_in">hash</span> = mmh3.<span class="built_in">hash</span>(favicon)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;http.favicon.hash:&#x27;</span>+<span class="built_in">str</span>(<span class="built_in">hash</span>))</span><br></pre></td></tr></table></figure>
+
+
+
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+        <a target="_blank" class="social-link" href="/atom.xml">
+          <span class="icon">
+            <i class="fa fa-rss"></i>
+          </span>
+
+          <span class="label">RSS</span>
+        </a>
+      </div>
+  </div>
+</div>
+
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/01/01/python%E7%88%AC%E8%99%AB-%E7%88%AC%E5%8F%96github%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0%E5%B9%B6%E5%AD%98%E5%82%A8%E4%B8%BAPDF/" rel="prev" title="python爬虫-爬取github博客文章并存储为PDF">
+                  <i class="fa fa-chevron-left"></i> python爬虫-爬取github博客文章并存储为PDF
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ErYao7</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

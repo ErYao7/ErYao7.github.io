@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"eryao7.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="目标页面： ​    https:&#x2F;&#x2F;yanmie-art.github.io&#x2F;tags&#x2F;  我们需要用到的库： ​    import pdfkit  ​    import requests  ​    import parsel 相关模块可pip安装 分析页面结构大概浏览以下页面，tags页面中包含了所有文章，不存在分页情况，这样就省去一步了。 F12打开开发者工具，查看页面源码，我们看到一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="python爬虫-爬取github博客文章并存储为PDF">
+<meta property="og:url" content="http://eryao7.github.io/2022/01/01/python%E7%88%AC%E8%99%AB-%E7%88%AC%E5%8F%96github%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0%E5%B9%B6%E5%AD%98%E5%82%A8%E4%B8%BAPDF/index.html">
+<meta property="og:site_name" content="ErYao7">
+<meta property="og:description" content="目标页面： ​    https:&#x2F;&#x2F;yanmie-art.github.io&#x2F;tags&#x2F;  我们需要用到的库： ​    import pdfkit  ​    import requests  ​    import parsel 相关模块可pip安装 分析页面结构大概浏览以下页面，tags页面中包含了所有文章，不存在分页情况，这样就省去一步了。 F12打开开发者工具，查看页面源码，我们看到一">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201012223104.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201012244773.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201012248611.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201012235358.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201012237175.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201012251185.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201012256819.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201012313515.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201012309360.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201012317897.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201012327398.png">
+<meta property="article:published_time" content="2022-01-01T14:21:51.000Z">
+<meta property="article:modified_time" content="2022-01-01T15:39:55.413Z">
+<meta property="article:author" content="ErYao7">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/ErYao7/photo/master/202201012223104.png">
+
+
+<link rel="canonical" href="http://eryao7.github.io/2022/01/01/python%E7%88%AC%E8%99%AB-%E7%88%AC%E5%8F%96github%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0%E5%B9%B6%E5%AD%98%E5%82%A8%E4%B8%BAPDF/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://eryao7.github.io/2022/01/01/python%E7%88%AC%E8%99%AB-%E7%88%AC%E5%8F%96github%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0%E5%B9%B6%E5%AD%98%E5%82%A8%E4%B8%BAPDF/","path":"2022/01/01/python爬虫-爬取github博客文章并存储为PDF/","title":"python爬虫-爬取github博客文章并存储为PDF"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>python爬虫-爬取github博客文章并存储为PDF | ErYao7</title>
+  
+
+  <script src="/js/third-party/analytics/baidu-analytics.js"></script>
+  <script async src="https://hm.baidu.com/hm.js?c92ad4f568c8e98b7c047d3479b8585b"></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="ErYao7" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">ErYao7</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%86%E6%9E%90%E9%A1%B5%E9%9D%A2%E7%BB%93%E6%9E%84"><span class="nav-text">分析页面结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%88%AC%E5%8F%96%E6%AF%8F%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0%E7%9A%84URL"><span class="nav-text">爬取每一篇文章的URL</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81"><span class="nav-text">实现代码</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%88%AC%E5%8F%96%E6%96%87%E7%AB%A0%E6%A0%87%E9%A2%98%E4%BB%A5%E5%8F%8A%E5%86%85%E5%AE%B9"><span class="nav-text">爬取文章标题以及内容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81%EF%BC%9A"><span class="nav-text">实现代码：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%A5%E6%A0%87%E9%A2%98%E5%90%8D%E5%AD%98%E5%82%A8%E4%B8%BAPDF%E6%A0%BC%E5%BC%8F"><span class="nav-text">以标题名存储为PDF格式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#wkhtmltopdf-exe-%E5%B7%A5%E5%85%B7"><span class="nav-text">wkhtmltopdf.exe 工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81%EF%BC%9A"><span class="nav-text">完整代码：</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ErYao7"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">ErYao7</p>
+  <div class="site-description" itemprop="description">欢迎来到ErYao7的博客~</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://eryao7.github.io/2022/01/01/python%E7%88%AC%E8%99%AB-%E7%88%AC%E5%8F%96github%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0%E5%B9%B6%E5%AD%98%E5%82%A8%E4%B8%BAPDF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ErYao7">
+      <meta itemprop="description" content="欢迎来到ErYao7的博客~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ErYao7">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          python爬虫-爬取github博客文章并存储为PDF
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2022-01-01 22:21:51 / 修改时间：23:39:55" itemprop="dateCreated datePublished" datetime="2022-01-01T22:21:51+08:00">2022-01-01</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>目标页面：</p>
+<p>​    <a target="_blank" rel="noopener" href="https://yanmie-art.github.io/tags/">https://yanmie-art.github.io/tags/</a></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201012223104.png" alt="image-20220101222342804"></p>
+<p>我们需要用到的库：</p>
+<p>​    <code>import pdfkit</code> </p>
+<p>​    <code>import requests</code> </p>
+<p>​    <code>import parsel</code></p>
+<p>相关模块可pip安装</p>
+<h1 id="分析页面结构"><a href="#分析页面结构" class="headerlink" title="分析页面结构"></a>分析页面结构</h1><p>大概浏览以下页面，tags页面中包含了所有文章，不存在分页情况，这样就省去一步了。</p>
+<p>F12打开开发者工具，查看页面源码，我们看到一个标签列表。</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201012244773.png" alt="image-20220101224434586"></p>
+<p>打开列表中的一个就会发现，该标签下的文章。</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201012248611.png" alt="image-20220101224840417"></p>
+<p>ctrl + shift +c ,选择 tags 页面中的文章标题 ”使用github个人博客“，我们看到了文章标题，链接以及class。</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201012235358.png" alt="image-20220101223527135"></p>
+<p>但是这里的链接只有后半部分，所以我们需要自己补全url</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201012237175.png" alt="image-20220101223721126"></p>
+<h1 id="爬取每一篇文章的URL"><a href="#爬取每一篇文章的URL" class="headerlink" title="爬取每一篇文章的URL"></a>爬取每一篇文章的URL</h1><h2 id="实现代码"><a href="#实现代码" class="headerlink" title="实现代码"></a>实现代码</h2><p>这里需要掌握 css选择器。（本人是初学者，所以下面内容如果存在错误之处，欢迎指出！）</p>
+<p>需要注意的是，当页面结构发生改变时，css选择器对应的代码就要改变！</p>
+<p>经过分析 文章的url 属于 post-preview 类，且位于a标签中，所以提取href的内容</p>
+<p><code>selector.css(&#39;.post-preview a ::attr(href)&#39;).getall()</code></p>
+<p>源码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> pdfkit</span><br><span class="line"><span class="keyword">import</span> parsel</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 目标url</span></span><br><span class="line">url = <span class="string">&quot;https://yanmie-art.github.io/tags/&quot;</span></span><br><span class="line"><span class="comment"># 文章url 前缀</span></span><br><span class="line">url0 = <span class="string">&quot;https://yanmie-art.github.io&quot;</span></span><br><span class="line"></span><br><span class="line">response = requests.get(url=url)</span><br><span class="line"><span class="comment"># 将网页变成选择器</span></span><br><span class="line">selector = parsel.Selector(response.text)</span><br><span class="line"><span class="comment"># 爬取每篇文章的url（不完整）</span></span><br><span class="line">urls1 = selector.css(<span class="string">&#x27;.post-preview a ::attr(href)&#x27;</span>).getall()</span><br><span class="line"><span class="comment"># 爬取每篇文章的title</span></span><br><span class="line"><span class="comment"># titles = selector.css(&#x27;.post-title::text&#x27;).getall()</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> url1 <span class="keyword">in</span> urls1:</span><br><span class="line">    <span class="comment"># 补全文章url</span></span><br><span class="line">    article_url = url0 + url1</span><br><span class="line">    <span class="comment"># 打印验证</span></span><br><span class="line">    <span class="built_in">print</span>(article_url)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201012251185.png" alt="image-20220101225152013"></p>
+<h1 id="爬取文章标题以及内容"><a href="#爬取文章标题以及内容" class="headerlink" title="爬取文章标题以及内容"></a>爬取文章标题以及内容</h1><p>爬取到每一篇文章的URL后，我们爬出每篇文章的标题和内容</p>
+<p>同样分析页面结构，获得标题位置和内容位置</p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201012256819.png" alt="image-20220101225606667"></p>
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201012313515.png" alt="image-20220101231334383"></p>
+<p>对于标题和内容的提取解析，同样使用css选择器，下面直接附上源码：</p>
+<h2 id="实现代码："><a href="#实现代码：" class="headerlink" title="实现代码："></a>实现代码：</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> pdfkit</span><br><span class="line"><span class="keyword">import</span> parsel</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 目标url</span></span><br><span class="line">url = <span class="string">&quot;https://yanmie-art.github.io/tags/&quot;</span></span><br><span class="line"><span class="comment"># 文章url 前缀</span></span><br><span class="line">url0 = <span class="string">&quot;https://yanmie-art.github.io&quot;</span></span><br><span class="line"></span><br><span class="line">response = requests.get(url=url)</span><br><span class="line"><span class="comment"># 将网页变成选择器</span></span><br><span class="line">selector = parsel.Selector(response.text)</span><br><span class="line"><span class="comment"># 爬取每篇文章的url（不完整）</span></span><br><span class="line">urls1 = selector.css(<span class="string">&#x27;.post-preview a ::attr(href)&#x27;</span>).getall()</span><br><span class="line"><span class="comment"># 爬取每篇文章的title</span></span><br><span class="line"><span class="comment"># titles = selector.css(&#x27;.post-title::text&#x27;).getall()</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> url1 <span class="keyword">in</span> urls1:</span><br><span class="line">    <span class="comment"># 补全文章url</span></span><br><span class="line">    article_url = url0 + url1</span><br><span class="line">    <span class="comment"># print(article_url)</span></span><br><span class="line">    <span class="comment"># 请求文章url</span></span><br><span class="line">    response = requests.get(url=article_url)</span><br><span class="line">    selector = parsel.Selector(response.text)</span><br><span class="line">    <span class="comment"># 获取文章标题,class=&quot;post-heading&quot;,h1标签,获取text</span></span><br><span class="line">    title = selector.css(<span class="string">&#x27;.post-heading h1 ::text&#x27;</span>).getall()</span><br><span class="line">    <span class="comment"># 过滤文章标题中不合法的字符，保证以文章标题为名存储为PDF时不报错</span></span><br><span class="line">    title = title[<span class="number">0</span>]</span><br><span class="line">    title = title.replace(<span class="string">&#x27;.&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    title = title.replace(<span class="string">&#x27;?&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    title = title.replace(<span class="string">&#x27;\&#x27;&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    title = title.replace(<span class="string">&#x27;&quot;&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    title = title.replace(<span class="string">&#x27;/&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    title = title.replace(<span class="string">&#x27;\\&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    <span class="comment"># 获取文章内容</span></span><br><span class="line">    content = selector.css(<span class="string">&#x27;.post-container&#x27;</span>).get()</span><br><span class="line">    <span class="comment"># 打印验证</span></span><br><span class="line">    <span class="built_in">print</span>(title)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;*&quot;</span>*<span class="number">40</span>)</span><br><span class="line">    <span class="built_in">print</span>(content)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;*&quot;</span>*<span class="number">40</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201012309360.png" alt="image-20220101230943222"></p>
+<h1 id="以标题名存储为PDF格式"><a href="#以标题名存储为PDF格式" class="headerlink" title="以标题名存储为PDF格式"></a>以标题名存储为PDF格式</h1><p>现在所看到的返回的内容结果，除了标题是咱们需要的那样，但是内容还是网页数据。</p>
+<p>咱们只需要把html改成PDF格式</p>
+<h2 id="wkhtmltopdf-exe-工具"><a href="#wkhtmltopdf-exe-工具" class="headerlink" title="wkhtmltopdf.exe 工具"></a><a target="_blank" rel="noopener" href="https://wkhtmltopdf.org/downloads.html">wkhtmltopdf.exe</a> 工具</h2><p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201012317897.png" alt="image-20220101231739762"></p>
+<p>有了这个小工具就可以将html格式改为PDF格式，直接上源码</p>
+<h2 id="完整代码："><a href="#完整代码：" class="headerlink" title="完整代码："></a>完整代码：</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> pdfkit</span><br><span class="line"><span class="keyword">import</span> parsel</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 目标url</span></span><br><span class="line">url = <span class="string">&quot;https://yanmie-art.github.io/tags/&quot;</span></span><br><span class="line"><span class="comment"># 文章url 前缀</span></span><br><span class="line">url0 = <span class="string">&quot;https://yanmie-art.github.io&quot;</span></span><br><span class="line"></span><br><span class="line">html_str = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">&lt;!doctype html&gt;</span></span><br><span class="line"><span class="string">&lt;html lang=&quot;en&quot;&gt;</span></span><br><span class="line"><span class="string">&lt;head&gt;</span></span><br><span class="line"><span class="string">    &lt;meta charset=&quot;UTF-8&quot;&gt;</span></span><br><span class="line"><span class="string">    &lt;title&gt;Document&lt;/title&gt;</span></span><br><span class="line"><span class="string">&lt;/head&gt;</span></span><br><span class="line"><span class="string">&lt;body&gt;</span></span><br><span class="line"><span class="string">&#123;article&#125;</span></span><br><span class="line"><span class="string">&lt;/body&gt;</span></span><br><span class="line"><span class="string">&lt;/html&gt;</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">response = requests.get(url=url)</span><br><span class="line"><span class="comment"># 将网页变成选择器</span></span><br><span class="line">selector = parsel.Selector(response.text)</span><br><span class="line"><span class="comment"># 爬取每篇文章的url（不完整）</span></span><br><span class="line">urls1 = selector.css(<span class="string">&#x27;.post-preview a ::attr(href)&#x27;</span>).getall()</span><br><span class="line"><span class="comment"># 爬取每篇文章的title</span></span><br><span class="line"><span class="comment"># titles = selector.css(&#x27;.post-title::text&#x27;).getall()</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> url1 <span class="keyword">in</span> urls1:</span><br><span class="line">    <span class="comment"># 补全文章url</span></span><br><span class="line">    article_url = url0 + url1</span><br><span class="line">    <span class="comment"># print(article_url)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 请求文章url</span></span><br><span class="line">    response = requests.get(url=article_url)</span><br><span class="line">    selector = parsel.Selector(response.text)</span><br><span class="line">    <span class="comment"># 获取文章标题,class=&quot;post-heading&quot;,h1标签,获取text</span></span><br><span class="line">    title = selector.css(<span class="string">&#x27;.post-heading h1 ::text&#x27;</span>).getall()</span><br><span class="line">    <span class="comment"># 过滤标题的非法字符，保证以标题名存储时正确</span></span><br><span class="line">    title = title[<span class="number">0</span>]</span><br><span class="line">    title = title.replace(<span class="string">&#x27;.&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    title = title.replace(<span class="string">&#x27;?&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    title = title.replace(<span class="string">&#x27;\&#x27;&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    title = title.replace(<span class="string">&#x27;&quot;&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    title = title.replace(<span class="string">&#x27;/&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    title = title.replace(<span class="string">&#x27;\\&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    <span class="comment"># 获取文章内容</span></span><br><span class="line">    content = selector.css(<span class="string">&#x27;.post-container&#x27;</span>).get()</span><br><span class="line">    <span class="comment"># 打印验证</span></span><br><span class="line">    <span class="comment"># print(title)</span></span><br><span class="line">    <span class="comment"># print(content)</span></span><br><span class="line">    <span class="comment"># print(&quot;*&quot;*40)</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 转换格式</span></span><br><span class="line">    html = html_str.<span class="built_in">format</span>(article=content)</span><br><span class="line">    <span class="comment"># 写入html文件</span></span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">f&#x27;<span class="subst">&#123;title&#125;</span>.html&#x27;</span>, mode=<span class="string">&#x27;w&#x27;</span>, encoding=<span class="string">&#x27;utf-8&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        f.write(html)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;&#123;&#125;已下载完成&#x27;</span>.<span class="built_in">format</span>(title))</span><br><span class="line">    <span class="comment"># exe 文件存放的路径</span></span><br><span class="line">    config = pdfkit.configuration(wkhtmltopdf=<span class="string">&#x27;D:\\wkhtmltox\\wkhtmltopdf\\bin\\wkhtmltopdf.exe&#x27;</span>)</span><br><span class="line">    <span class="comment"># 报错：由于网络错误，以代码 1 退出：ProtocolUnknownError</span></span><br><span class="line">    <span class="comment"># 解决方法：https://githubmate.com/repo/HAKSOAT/EpubToPdf/issues/3</span></span><br><span class="line">    options = &#123;</span><br><span class="line">        <span class="string">&quot;enable-local-file-access&quot;</span>: <span class="literal">None</span>,</span><br><span class="line">        <span class="string">&quot;quiet&quot;</span>: <span class="string">&quot;&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment"># 把 html 通过 pdfkit 变成 pdf 文件</span></span><br><span class="line">    pdfkit.from_file(<span class="string">f&#x27;<span class="subst">&#123;title&#125;</span>.html&#x27;</span>, <span class="string">f&#x27;<span class="subst">&#123;title&#125;</span>.pdf&#x27;</span>, configuration=config, options=options)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/ErYao7/photo/master/202201012327398.png" alt="image-20220101232735213"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+        <a target="_blank" class="social-link" href="/atom.xml">
+          <span class="icon">
+            <i class="fa fa-rss"></i>
+          </span>
+
+          <span class="label">RSS</span>
+        </a>
+      </div>
+  </div>
+</div>
+
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/12/20/vulhub%E6%BC%8F%E6%B4%9E-%E2%80%94Weblogic%E7%AE%A1%E7%90%86%E6%8E%A7%E5%88%B6%E5%8F%B0%E6%9C%AA%E6%8E%88%E6%9D%83%E8%BF%9C%E7%A8%8B%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2020-14882%EF%BC%8CCVE-2020-14883%EF%BC%89/" rel="prev" title="vulhub漏洞-—Weblogic管理控制台未授权远程命令执行漏洞（CVE-2020-14882，CVE-2020-14883）">
+                  <i class="fa fa-chevron-left"></i> vulhub漏洞-—Weblogic管理控制台未授权远程命令执行漏洞（CVE-2020-14882，CVE-2020-14883）
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/01/02/%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86-%E7%BB%95%E8%BF%87CDN/" rel="next" title="信息收集-绕过CDN">
+                  信息收集-绕过CDN <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ErYao7</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

